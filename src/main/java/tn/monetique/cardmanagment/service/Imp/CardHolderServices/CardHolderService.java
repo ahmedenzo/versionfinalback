@@ -105,11 +105,15 @@ public class CardHolderService implements IcardHolderService {
         Timestamp currentDate = new Timestamp(System.currentTimeMillis());
         cardHolder.setJulianDate(convertToJulianDate(currentDate));
         cardHolder.setCardholderNumber(iEncryptDecryptservi.encrypt(cardNumber));
-        if(bank.getBankIdCode()=="0151"){
+        System.out.println("bank.getBankIdCode"+ bank.getBankIdCode());
+        System.out.println("bank.getBankIdCode"+ bank);
+        if("0151".equals(bank.getBankIdCode())){
         cardHolder.setFirstAccount(cardHolder.getCardholderNumber());
+            System.out.println("d5al if");
         }
         else{
             cardHolder.setFirstAccount(iEncryptDecryptservi.encrypt(cardHolder.getFirstAccount()));
+            System.out.println("d5al elese");
         }
 
         if (cardHolder.getSecondAccount()!=null){
@@ -128,10 +132,11 @@ public class CardHolderService implements IcardHolderService {
         String username =userDetails.getUsername();
         AgentBank agentBank = agentBankRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("Fake user"));
-        Agence  useragency = agentBank.getAgence();
-        String bankname = useragency.getBank().getBankName();
+        Agence agencyofuser = agentBank.getAgence();
+
+        String bankname = agencyofuser.getBank().getBankName();
         Bin Selectedbin = binRepository.findById(SelectedbinId).orElse(null);
-        CardHolder createdCardHolder = DataINPutpreparation(cardHolder,bankname,Selectedbin,useragency,username);
+        CardHolder createdCardHolder = DataINPutpreparation(cardHolder,bankname,Selectedbin,agencyofuser,username);
         return createdCardHolder;
     }
     @Override
