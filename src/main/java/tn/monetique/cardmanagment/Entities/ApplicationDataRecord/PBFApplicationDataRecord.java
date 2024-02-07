@@ -20,7 +20,6 @@ public class PBFApplicationDataRecord implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private boolean PBFgenerated = false;
-    private String Lgth="0300";
     private String cnt;
     private String PrikeyFiid;
     private String numAccount;

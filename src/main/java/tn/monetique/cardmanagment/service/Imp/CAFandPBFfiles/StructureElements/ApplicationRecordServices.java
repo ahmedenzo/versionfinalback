@@ -30,7 +30,10 @@ import tn.monetique.cardmanagment.service.Interface.BankConfig.IPosDataService;
 import tn.monetique.cardmanagment.service.Interface.PBFCAF.IApplicationRecordServices;
 import tn.monetique.cardmanagment.service.Interface.Card.IEncryptDecryptservi;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +48,6 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
     IEmvDataServices iEmvDataServices;
     @Autowired
     IPOSPBFXDServices ipospbfxdServices;
-
     @Autowired
     CAFApplicationDataRecordRepository cafApplicationDataRecordRepository;
     @Autowired
@@ -81,18 +83,29 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
         cafApplicationDataRecord.setAtmData(atmData);
         cafApplicationDataRecord.setPosData(posData);
         cafApplicationDataRecord.setEmvData(emvData);
-        cafApplicationDataRecord.setLgth("0346");
-        cafApplicationDataRecord.setCardStatus(" ");
+        cafApplicationDataRecord.setCardStatus("C");
         cafApplicationDataRecord.setMbrNum("000");
         cafApplicationDataRecord.setCardType(cardHolder.getCardtype());
+
         cafApplicationDataRecord.setFiid(cardHolder.getBankIdCode().toString());
-        cafApplicationDataRecord.setTotalWithdrawalLimit("000000000800");
-        cafApplicationDataRecord.setOfflineWithdrawalLimit("000000000800");
-        cafApplicationDataRecord.setTotalCashAdvanceLimit("000000000800");
-        cafApplicationDataRecord.setOfflineCashAdvanceLimit("000000000800");
-        cafApplicationDataRecord.setAggregateLimit("000000000800");
-        cafApplicationDataRecord.setOfflineAggregateLimit("000000000800");
-        cafApplicationDataRecord.setCardExpDate(cardHolder.getDate2());
+        //cafApplicationDataRecord.setTotalWithdrawalLimit("000000000800");
+        //cafApplicationDataRecord.setOfflineWithdrawalLimit("000000000800");
+        // cafApplicationDataRecord.setTotalCashAdvanceLimit("000000000800");
+        //cafApplicationDataRecord.setOfflineCashAdvanceLimit("000000000800");
+        // cafApplicationDataRecord.setAggregateLimit("000000000800");
+        // cafApplicationDataRecord.setOfflineAggregateLimit("000000000800");
+
+        String inputDate = cardHolder.getDate2();
+        SimpleDateFormat inputFormat = new SimpleDateFormat("MMyy");
+        try {
+            Date parsedDate = inputFormat.parse(inputDate);
+            SimpleDateFormat outputFormat = new SimpleDateFormat("yyMM");
+            String outputDate = outputFormat.format(parsedDate);
+            cafApplicationDataRecord.setCardExpDate(outputDate);
+            System.out.println("Converted Date (YYMM): " + outputDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         cafApplicationDataRecord.setAcctNum(cardHolder.getFirstAccount());
         cafApplicationDataRecord.setAcctTyp("01");
         cafApplicationDataRecord.setAcctCnt("01");
@@ -182,13 +195,14 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
     @Override
     public String generateCAFApplicationDataRecordsForCard(List<Long> cafids) {
         StringBuilder result = new StringBuilder();
-        int counter = 1;
+        int counter = 3;
+
         for (Long cafid : cafids) {
             CAFApplicationDataRecord cafApplicationDataRecord=getCAfapplirecById(cafid);
             System.out.println("ok"+cafApplicationDataRecord);
             String cntValue = String.format("%09d", counter);
             StringBuilder cafRecord = new StringBuilder();
-            cafRecord.append(formatField(cafApplicationDataRecord.getLgth(), 4));
+            cafRecord.append(formatField("0346", 4));
             cafRecord.append(formatField(cntValue, 9));
             cafRecord.append(formatField(iEncryptDecryptservi.decrypt(cafApplicationDataRecord.getPan()), 19));
             cafRecord.append(formatField(cafApplicationDataRecord.getMbrNum(), 3));
@@ -197,12 +211,12 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
             cafRecord.append(formatField(cafApplicationDataRecord.getFiid(), 4));
             cafRecord.append(formatField(cafApplicationDataRecord.getCardStatus(), 1));
             cafRecord.append(formatField(cafApplicationDataRecord.getPinOfset(), 16));
-            cafRecord.append(formatField(cafApplicationDataRecord.getTotalWithdrawalLimit(), 12));
-            cafRecord.append(formatField(cafApplicationDataRecord.getOfflineWithdrawalLimit(), 12));
-            cafRecord.append(formatField(cafApplicationDataRecord.getTotalCashAdvanceLimit(), 12));
-            cafRecord.append(formatField(cafApplicationDataRecord.getOfflineCashAdvanceLimit(), 12));
-            cafRecord.append(formatField(cafApplicationDataRecord.getAggregateLimit(), 12));
-            cafRecord.append(formatField(cafApplicationDataRecord.getOfflineAggregateLimit(), 12));
+            cafRecord.append(formatField(cafApplicationDataRecord.getAtmData().getTotalWithdrawalLimit(), 12));
+            cafRecord.append(formatField(cafApplicationDataRecord.getAtmData().getTotalWithdrawalLimit(), 12));
+            cafRecord.append(formatField(cafApplicationDataRecord.getAtmData().getTotalWithdrawalLimit(), 12));
+            cafRecord.append(formatField(cafApplicationDataRecord.getAtmData().getTotalWithdrawalLimit(), 12));
+            cafRecord.append(formatField(cafApplicationDataRecord.getAtmData().getTotalWithdrawalLimit(), 12));
+            cafRecord.append(formatField(cafApplicationDataRecord.getAtmData().getTotalWithdrawalLimit(), 12));
             cafRecord.append(formatField(cafApplicationDataRecord.getFirstUsedDate(), 6));
             cafRecord.append(formatField(cafApplicationDataRecord.getLastResetDate(), 6));
             cafRecord.append(formatField(cafApplicationDataRecord.getCardExpDate(), 4));
@@ -250,16 +264,17 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
             cafRecord.append(formatField(cafApplicationDataRecord.getEmvData().getPinSyncAct(), 1));
             cafRecord.append(formatField(cafApplicationDataRecord.getEmvData().getAccessScriptMgmtSubSys(), 1));
             cafRecord.append(formatField(cafApplicationDataRecord.getEmvData().getIssApplDataFmt(), 1));
-            cafRecord.append(formatField(cafApplicationDataRecord.getEmvData().getIssApplDataFmt(), 1));
             cafRecord.append(formatField(cafApplicationDataRecord.getEmvData().getActionTableIndex(), 1));
             cafRecord.append(formatField(cafApplicationDataRecord.getAcctLgth(), 4));
             cafRecord.append(formatField(cafApplicationDataRecord.getAcctCnt(), 2));
             cafRecord.append(formatField(cafApplicationDataRecord.getAcctTyp(), 2));
             cafRecord.append(formatField(iEncryptDecryptservi.decrypt(cafApplicationDataRecord.getAcctNum()), 19));
+
             cafRecord.append(formatField(cafApplicationDataRecord.getAcctStat(), 1));
             cafRecord.append(formatField(cafApplicationDataRecord.getAcctDescr(), 10));
             cafRecord.append(formatField(cafApplicationDataRecord.getAcctCorp(), 1));
             cafRecord.append(formatField(cafApplicationDataRecord.getAcctQual(), 1));
+            System.out.println(cafApplicationDataRecord.getAcctNum());
 
             int totalLength = cafRecord.length();
 
@@ -280,6 +295,7 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
             cafApplicationDataRecordRepository.save(cafApplicationDataRecord);
 
         }
+
         System.out.println("ok    "+result.toString());
         return result.toString();
     }
@@ -391,7 +407,6 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
         PBFApplicationDataRecord pbfApplicationDataRecord = new PBFApplicationDataRecord();
         pbfApplicationDataRecord.setPbfCardHolder(cardHolder);
         pbfApplicationDataRecord.setPospbfxd(pospbfxd);
-        pbfApplicationDataRecord.setLgth("0300");
         pbfApplicationDataRecord.setCnt("000000001");
         pbfApplicationDataRecord.setPrikeyFiid(cardHolder.getBank().getBankIdCode().toString());
         pbfApplicationDataRecord.setNumAccount(cardHolder.getFirstAccount());
@@ -415,12 +430,12 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
     @Override
     public String generatePBFApplicationDataRecordsForCard(List<Long> PbfIds) {
         StringBuilder result = new StringBuilder();
-        int counter = 1;
+        int counter = 3;
         for (Long pbfid : PbfIds) {
 
             PBFApplicationDataRecord pbfApplicationDataRecord=getPBFApplicationDataRecordById(pbfid);System.out.println("ok"+pbfApplicationDataRecord);String cntValue = String.format("%09d", counter);
             StringBuilder pbfRecord = new StringBuilder();
-            pbfRecord.append(pbfformatField(pbfApplicationDataRecord.getLgth(), 4));
+            pbfRecord.append(pbfformatField("0300", 4));
             pbfRecord.append(pbfformatField(cntValue, 9));
             pbfRecord.append(pbfformatField(pbfApplicationDataRecord.getPrikeyFiid(), 4));
             pbfRecord.append(pbfformatField(iEncryptDecryptservi.decrypt(pbfApplicationDataRecord.getNumAccount()), 19));
@@ -630,7 +645,7 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
     @Override
     public PBFApplicationDataRecord updatePBFrecord(Long Idpbf, PBFApplicationDataRecord newpbfApplicationDataRecord) {
         PBFApplicationDataRecord existingPbf = getPBFApplicationDataRecordById(Idpbf);
-        Optional<CardHolder> existcard = cardHolderRepository.findById(Idpbf);
+        //Optional<CardHolder> existcard = cardHolderRepository.findById(Idpbf);
         if (existingPbf != null) {
             existingPbf.setLedgBal(newpbfApplicationDataRecord.getLedgBal());
             existingPbf.setAvailBal(newpbfApplicationDataRecord.getAvailBal());

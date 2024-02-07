@@ -105,11 +105,19 @@ public class CardHolderService implements IcardHolderService {
         Timestamp currentDate = new Timestamp(System.currentTimeMillis());
         cardHolder.setJulianDate(convertToJulianDate(currentDate));
         cardHolder.setCardholderNumber(iEncryptDecryptservi.encrypt(cardNumber));
-        cardHolder.setFirstAccount(iEncryptDecryptservi.encrypt(cardHolder.getFirstAccount()));
-        cardHolder.setSecondAccount(iEncryptDecryptservi.encrypt(cardHolder.getSecondAccount()));
-        cardHolder.setPassportId(iEncryptDecryptservi.encrypt(cardHolder.getPassportId()));
+        if(bank.getBankIdCode()=="0151"){
+        cardHolder.setFirstAccount(cardHolder.getCardholderNumber());
+        }
+        else{
+            cardHolder.setFirstAccount(iEncryptDecryptservi.encrypt(cardHolder.getFirstAccount()));
+        }
+
+        if (cardHolder.getSecondAccount()!=null){
+            cardHolder.setSecondAccount(iEncryptDecryptservi.decrypt(cardHolder.getSecondAccount()));
+        }
+        cardHolder.setPassportId(cardHolder.getPassportId());
         cardHolder.setCityCode(Useragence.getCityCode());
-        cardHolder.setCin(iEncryptDecryptservi.encrypt(cardHolder.getCin()));
+        cardHolder.setCin(cardHolder.getCin());
         cardHolder.setCreatedBy(username);
         cardHolderRepository.save(cardHolder);
         return cardHolder;
@@ -138,16 +146,16 @@ public class CardHolderService implements IcardHolderService {
                 System.out.println("cardgenerated");
                 // Only update the fields that need to be updated
                 if ("2".equals(updatedData.getUpdatecode())) {
-
                     existingCardholder.setPassportId(iEncryptDecryptservi.encrypt(updatedData.getPassportId()));
                     existingCardholder.setAddress(updatedData.getAddress());
                     existingCardholder.setBirthDate(updatedData.getBirthDate());
                     existingCardholder.setCorporateName(updatedData.getCorporateName());
-                    existingCardholder.setFirstAccount(iEncryptDecryptservi.encrypt(updatedData.getFirstAccount()));
+                    existingCardholder.setFirstAccount(iEncryptDecryptservi
+                            .encrypt(existingCardholder.getFirstAccount()));
                     existingCardholder.setEmail(updatedData.getEmail());
                     existingCardholder.setName(updatedData.getName());
                     existingCardholder.setPhoneNumber(updatedData.getPhoneNumber());
-                    existingCardholder.setCin(iEncryptDecryptservi.encrypt(updatedData.getCin()));
+                    existingCardholder.setCin(updatedData.getCin());
                     existingCardholder.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
                     existingCardholder.setUpdatedBy(username);
                     existingCardholder.setUpdatecode(updatedData.getUpdatecode());
@@ -196,13 +204,9 @@ public class CardHolderService implements IcardHolderService {
                             .encrypt(existingCardholder.getCardholderNumber()));
                     existingCardholder.setFirstAccount(iEncryptDecryptservi
                             .encrypt(existingCardholder.getFirstAccount()));
-                    existingCardholder.setPassportId(iEncryptDecryptservi
-                            .encrypt(existingCardholder.getPassportId()));
-                    existingCardholder.setCin(iEncryptDecryptservi
-                            .encrypt(existingCardholder.getCin()));
+                    existingCardholder.setPassportId(existingCardholder.getPassportId());
+                    existingCardholder.setCin(existingCardholder.getCin());
                     existingCardholder.setStatuscard(updatedData.getStatuscard());
-
-
                     /////////  forcaf
                     CAFApplicationDataRecord cafcard=cafApplicationDataRecordRepository.findByCafCardHolder_CustomerId(customerId);
                     cafcard.setCardExpDate(formattedDate2);
@@ -214,7 +218,6 @@ public class CardHolderService implements IcardHolderService {
                     return existingCardholder;
                      // You can choose to return a message or null here
                }else if ("3".equals(updatedData.getUpdatecode())) {
-
                     existingCardholder.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
                     existingCardholder.setUpdatedBy(username);
                     existingCardholder.setUpdatecode(updatedData.getUpdatecode());
@@ -224,10 +227,8 @@ public class CardHolderService implements IcardHolderService {
                             .encrypt(existingCardholder.getCardholderNumber()));
                     existingCardholder.setFirstAccount(iEncryptDecryptservi
                             .encrypt(existingCardholder.getFirstAccount()));
-                    existingCardholder.setPassportId(iEncryptDecryptservi
-                            .encrypt(existingCardholder.getPassportId()));
-                    existingCardholder.setCin(iEncryptDecryptservi
-                            .encrypt(existingCardholder.getCin()));
+                    existingCardholder.setPassportId(existingCardholder.getPassportId());
+                    existingCardholder.setCin(existingCardholder.getCin());
                     existingCardholder.setStatuscard(updatedData.getStatuscard());
                     /////forcaf///////
                     CAFApplicationDataRecord cafcard=cafApplicationDataRecordRepository.findByCafCardHolder_CustomerId(customerId);
@@ -245,8 +246,6 @@ public class CardHolderService implements IcardHolderService {
         }
     }
 
-
-
     @Override
     public CardHolder UpdateDataInput(Long customerId, Long selectedBinId, CardHolder updatedData, Authentication authentication) {
         CardHolder existingCardholder = cardHolderRepository.findById(customerId).orElse(null);
@@ -262,6 +261,7 @@ public class CardHolderService implements IcardHolderService {
                 if (!existingCardholder.getBin().equals(selectedBin.getBinValue())) {
                     String cardNumber = generateUniqueCardNumber(selectedBin.getBinValue());
                     existingCardholder.setCardholderNumber(iEncryptDecryptservi.encrypt(cardNumber));
+                    existingCardholder.setFirstAccount(iEncryptDecryptservi.encrypt(cardNumber));
                     existingCardholder.setBin(selectedBin.getBinValue());
                     existingCardholder.setCurrencycode(selectedBin.getCurrency());
                     existingCardholder.setCardtype(selectedBin.getCardType());
@@ -281,18 +281,17 @@ public class CardHolderService implements IcardHolderService {
                 }
 
                 if (updatedData.getPassportId() != null) {
-                    existingCardholder.setPassportId(iEncryptDecryptservi.encrypt(updatedData.getPassportId()));
+                    existingCardholder.setPassportId(updatedData.getPassportId());
                 }
                 existingCardholder.setAddress(updatedData.getAddress());
                 existingCardholder.setBirthDate(updatedData.getBirthDate());
                 existingCardholder.setCorporateName(updatedData.getCorporateName());
-                existingCardholder.setFirstAccount(iEncryptDecryptservi.encrypt(updatedData.getFirstAccount()));
                 existingCardholder.setEmail(updatedData.getEmail());
                 existingCardholder.setName(updatedData.getName());
                 existingCardholder.setPhoneNumber(updatedData.getPhoneNumber());
 
                 if (updatedData.getCin() != null) {
-                    existingCardholder.setCin(iEncryptDecryptservi.encrypt(updatedData.getCin()));
+                    existingCardholder.setCin(updatedData.getCin());
                 }
 
                 existingCardholder.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
@@ -332,9 +331,10 @@ public class CardHolderService implements IcardHolderService {
             for (CardHolder cardHolder : cardHolders) {
                 cardHolder.setCardholderNumber(iEncryptDecryptservi.decrypt(cardHolder.getCardholderNumber()));
                 cardHolder.setFirstAccount(iEncryptDecryptservi.decrypt(cardHolder.getFirstAccount()));
-                cardHolder.setSecondAccount(iEncryptDecryptservi.decrypt(cardHolder.getSecondAccount()));
-                cardHolder.setPassportId(iEncryptDecryptservi.decrypt(cardHolder.getPassportId()));
-                cardHolder.setCin(iEncryptDecryptservi.decrypt(cardHolder.getCin()));
+                if (cardHolder.getSecondAccount()!=null){
+                    cardHolder.setSecondAccount(iEncryptDecryptservi.decrypt(cardHolder.getSecondAccount()));
+                }
+
             }
             return cardHolders;
         } else {
@@ -352,9 +352,11 @@ public class CardHolderService implements IcardHolderService {
         for (CardHolder cardHolder : cardHolders) {
             cardHolder.setCardholderNumber(iEncryptDecryptservi.decrypt(cardHolder.getCardholderNumber()));
             cardHolder.setFirstAccount(iEncryptDecryptservi.decrypt(cardHolder.getFirstAccount()));
-            cardHolder.setSecondAccount(iEncryptDecryptservi.decrypt(cardHolder.getSecondAccount()));
-            cardHolder.setPassportId(iEncryptDecryptservi.decrypt(cardHolder.getPassportId()));
-            cardHolder.setCin(iEncryptDecryptservi.decrypt(cardHolder.getCin()));
+            if (cardHolder.getSecondAccount()!=null){
+                cardHolder.setSecondAccount(iEncryptDecryptservi.decrypt(cardHolder.getSecondAccount()));
+            }
+            cardHolder.setPassportId(cardHolder.getPassportId());
+            cardHolder.setCin(cardHolder.getCin());
         }
         return cardHolders;
     }
@@ -366,9 +368,11 @@ public class CardHolderService implements IcardHolderService {
             for (CardHolder cardHolder : cardHolders) {
                 cardHolder.setCardholderNumber(iEncryptDecryptservi.decrypt(cardHolder.getCardholderNumber()));
                 cardHolder.setFirstAccount(iEncryptDecryptservi.decrypt(cardHolder.getFirstAccount()));
-                cardHolder.setSecondAccount(iEncryptDecryptservi.decrypt(cardHolder.getSecondAccount()));
-                cardHolder.setPassportId(iEncryptDecryptservi.decrypt(cardHolder.getPassportId()));
-                cardHolder.setCin(iEncryptDecryptservi.decrypt(cardHolder.getCin()));
+                if (cardHolder.getSecondAccount()!=null){
+                    cardHolder.setSecondAccount(iEncryptDecryptservi.decrypt(cardHolder.getSecondAccount()));
+                }
+                cardHolder.setPassportId(cardHolder.getPassportId());
+                cardHolder.setCin(cardHolder.getCin());
             }
 
             return cardHolders;
@@ -398,9 +402,11 @@ public class CardHolderService implements IcardHolderService {
             // Decrypt the required fields
             cardHolder.setCardholderNumber(iEncryptDecryptservi.decrypt(cardHolder.getCardholderNumber()));
             cardHolder.setFirstAccount(iEncryptDecryptservi.decrypt(cardHolder.getFirstAccount()));
+            if (cardHolder.getSecondAccount()!=null){
             cardHolder.setSecondAccount(iEncryptDecryptservi.decrypt(cardHolder.getSecondAccount()));
-            cardHolder.setPassportId(iEncryptDecryptservi.decrypt(cardHolder.getPassportId()));
-            cardHolder.setCin(iEncryptDecryptservi.decrypt(cardHolder.getCin()));
+            }
+            cardHolder.setPassportId(cardHolder.getPassportId());
+            cardHolder.setCin(cardHolder.getCin());
             // Decrypt other fields as needed
 
             return cardHolder;
@@ -444,7 +450,7 @@ public class CardHolderService implements IcardHolderService {
     public String generateCardNumber() {
         Random random = new Random();
         StringBuilder cardNumberBuilder = new StringBuilder();
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 5; i++) {
             int digit = random.nextInt(10);
             cardNumberBuilder.append(digit);
         }

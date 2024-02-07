@@ -24,15 +24,10 @@ public class EmailService {
 
     }
 
-
-
-
     public void sendConfirmationEmail(String recipientEmail, String confirmationUrl) {
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setTo(recipientEmail);
-
         msg.setSubject("Confirm your email address");
-
         String message = "Please click the link below to confirm your email address:\n" + confirmationUrl;
         msg.setText(message);
 

@@ -74,8 +74,8 @@ public class GeneratePortFile implements IGeneratePortFile {
                 dataIput.append(formatField(card.getAddressthree(), 32));
                 dataIput.append(formatField(card.getPostalCode(), 9));
                 dataIput.append( formatField("", 26));
-                dataIput.append(formatField(iEncryptDecryptservi.decrypt(card.getFirstAccount()), 24));
-                dataIput.append(formatField(iEncryptDecryptservi.decrypt(card.getSecondAccount()), 24));
+                dataIput.append(formatField(iEncryptDecryptservi.decrypt(card.getCardholderNumber()), 24));
+                dataIput.append(formatField(card.getSecondAccount(), 24));
                 dataIput.append(formatField(card.getBranchcode(), 5));
                 dataIput.append(formatField(card.getDate1(), 4));
                 dataIput.append(formatField(card.getDate2(), 4));
@@ -86,11 +86,11 @@ public class GeneratePortFile implements IGeneratePortFile {
                 dataIput.append(formatField(card.getTerritorycode(), 1));
                 dataIput.append( formatField("00", 2));
                 dataIput.append(formatField(card.getJulianDate(), 6));
-                dataIput.append(formatField(card.getBankIdCode().toString(), 5));
+                dataIput.append(formatField("0"+card.getBankIdCode().toString(), 5));
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
                 String formattedBirthDate = card.getBirthDate().format(formatter);
                 dataIput.append(formatField(formattedBirthDate, 8));
-                dataIput.append(formatField(iEncryptDecryptservi.decrypt(card.getPassportId()),10));
+                dataIput.append(formatField(card.getPassportId(),10));
                 dataIput.append( formatField("", 6));
                 dataIput.append(formatField(card.getCountryCode(), 3));
                 dataIput.append(formatField(card.getCityCode(), 5));
@@ -98,7 +98,7 @@ public class GeneratePortFile implements IGeneratePortFile {
                 dataIput.append( formatField("", 26));
                 dataIput.append(formatField(card.getSourcecode(), 1));
                 dataIput.append(formatField(card.getPrimarycardcode(), 1));
-                dataIput.append(formatField(iEncryptDecryptservi.decrypt(card.getCardholderNumber()), 19));
+                dataIput.append(formatField(iEncryptDecryptservi.decrypt(card.getFirstAccount()), 19));
                 dataIput.append( formatField("", 5));
                 dataIput.append(formatField(card.getCurrencycode(), 3));
                 dataIput.append(formatField(card.getOperatorUserCode(), 6));
@@ -106,7 +106,7 @@ public class GeneratePortFile implements IGeneratePortFile {
                 dataIput.append( formatField("", 6));
                 dataIput.append(formatField(card.getPkiindicator(), 1));
                 dataIput.append(formatField(card.getAcs(), 1));
-                dataIput.append(formatField(iEncryptDecryptservi.decrypt(card.getCin()), 16));
+                dataIput.append(formatField(card.getCin(), 16));
                 dataIput.append( formatField("", 29));
                 dataIput.append(formatField(card.getCountryPhonecode(), 3));
                 dataIput.append(formatField(card.getPhoneNumber(), 8));

@@ -49,7 +49,7 @@ public class FileGenerationService implements IFileGenerationService {
         String bankname= adminBank.getBank().getBankName();
         try {
 
-            String fileHeader = iHeaderFilesServices.createAndGenerateheaderRecord( "CAF");
+            String fileHeader = iHeaderFilesServices.createAndGenerateheaderRecord( "CAF",authentication);
             String organisationHeader = iHeaderFilesServices.createAndGenerateorganisationRecord();
             String CAFapplicationDataRecords = iApplicationRecordServices.generateCAFApplicationDataRecordsForCard(customerIds);
             String organisationTrailer = iTrailerFileService.createAndGenerateorgTrailerRecord(customerIds, "CAF");
@@ -115,7 +115,7 @@ public class FileGenerationService implements IFileGenerationService {
         String bankname= adminBank.getBank().getBankName();
         try {
 
-            String fileHeader = iHeaderFilesServices.createAndGenerateheaderRecord( "PBF");
+            String fileHeader = iHeaderFilesServices.createAndGenerateheaderRecord( "PBF",authentication);
 
             String organisationHeader = iHeaderFilesServices.createAndGenerateorganisationRecord();
 

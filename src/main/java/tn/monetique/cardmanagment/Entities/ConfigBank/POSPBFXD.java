@@ -16,7 +16,7 @@ public class POSPBFXD implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long posPbfXdId;
-        private String segxLgth="0300";
+        private String segxLgth="0042";
         private String ttlFloat="000000000000000";
         private String daysDelinq="00";
         private String monthsActive="00";

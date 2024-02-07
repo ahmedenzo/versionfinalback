@@ -20,8 +20,6 @@ import java.sql.Timestamp;
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
         private boolean CFAgenerated = false;
-        private String count;
-        private String lgth;
         private String pan;
         private String MbrNum;
         private String recordType;

@@ -1,11 +1,15 @@
 package tn.monetique.cardmanagment.service.Imp.CAFandPBFfiles.StructureElements;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import tn.monetique.cardmanagment.Entities.Auth_User.BankAdmin;
 import tn.monetique.cardmanagment.Model.FileHeaderRecord;
 import tn.monetique.cardmanagment.Model.OrganisationHeaderRecord;
 import tn.monetique.cardmanagment.repository.ApplicationDataRecord.CAFApplicationDataRecordRepository;
 import tn.monetique.cardmanagment.repository.ApplicationDataRecord.PBFApplicationDataRecordRepository;
+import tn.monetique.cardmanagment.repository.userManagmentRepo.AdminBankRepository;
+import tn.monetique.cardmanagment.security.services.UserDetailsImpl;
 import tn.monetique.cardmanagment.service.Interface.PBFCAF.IApplicationRecordServices;
 import tn.monetique.cardmanagment.service.Interface.PBFCAF.IHeaderFilesServices;
 
@@ -23,6 +27,8 @@ public class HeaderFilesServices  implements IHeaderFilesServices {
     private PBFApplicationDataRecordRepository pbfApplicationDataRecordRepository;
     @Autowired
     private IApplicationRecordServices iApplicationRecordServices;
+    @Autowired
+    AdminBankRepository adminBankRepository;
 
     public String generatehederRecordString(FileHeaderRecord headerRecord ) {
         StringBuilder recordString = new StringBuilder();
@@ -83,7 +89,12 @@ public class HeaderFilesServices  implements IHeaderFilesServices {
 
     }
     @Override
-    public String createAndGenerateheaderRecord(String fileType) {
+    public String createAndGenerateheaderRecord(String fileType, Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+        BankAdmin adminBank = adminBankRepository.findByUsername(username).orElse(null);
+
+        String bankid = adminBank.getBank().getBankIdCode();
         FileHeaderRecord headerRecord = new FileHeaderRecord();
         LocalDateTime dateTime = LocalDateTime.now();
         LocalDate date = dateTime.toLocalDate();
@@ -101,6 +112,7 @@ public class HeaderFilesServices  implements IHeaderFilesServices {
         headerRecord.setRecordCount("000000001");
         headerRecord.setRecordType("FH");
         headerRecord.setRefreshType("1");
+        headerRecord.setGrpcode(bankid);
         headerRecord.setTapeDate( formattedDate1 );
         headerRecord.setTapeTime(formattedTime3);
         headerRecord.setLn("PRO2");

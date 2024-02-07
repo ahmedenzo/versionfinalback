@@ -16,14 +16,14 @@ public class PosData implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long posDataId;
-    private String segxLgth="0042";
-    private String totalPurchaseLimit="000000000000000";
+    private String segxLgth="0140000000000000";
+    private String totalPurchaseLimit;
     private String offlinePurchaseLimit;
     private String totalCashAdvanceLimit;
     private String offlineCashAdvanceLimit;
     private String totalWithdrawalLimit;
     private String offlineWithdrawalLimit;
-    private String useLimit;
+    private String useLimit="0010";
     private String totalRefundCreditLimit;
     private String offlineRefundCreditLimit;
     private String reasonCode;

@@ -163,6 +163,7 @@ public class AuthController {
     public ResponseEntity<UserResponse> getbyusername(@PathVariable("username") String username) {
         Optional<BankAdmin> optionalAdmin = adminBankRepository.findByUsername(username);
         Optional<AgentBank> optionalUser = AgentBankRepository.findByUsername(username);
+        Optional<MonetiqueAdmin> optinalMonetique = monetiqueAdminRepo.findByUsername(username);
 
         if (optionalAdmin.isPresent()) {
             BankAdmin bankAdmin = optionalAdmin.get();
@@ -174,8 +175,9 @@ public class AuthController {
             UserResponse response = new UserResponse(agentBank.getId(),
                     agentBank.getUsername(), agentBank.getImage(), agentBank.getEmail(),agentBank.getFullname(),agentBank.getPhone());
             return ResponseEntity.ok(response);
-        } else {
-            throw new RuntimeException("Error: Bank Admin or Agent  not found.");
+        }
+        else {
+            throw new RuntimeException("Error: Bank Admin or Agent  not found Lotfi.");
         }
     }
 
