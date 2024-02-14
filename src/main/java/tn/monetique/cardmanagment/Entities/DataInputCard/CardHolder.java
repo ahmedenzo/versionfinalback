@@ -25,6 +25,7 @@ import java.time.LocalDate;
         private String HeaderRecord;
         private String primarycardcode;
         private String bin ;
+        @Column(unique = true)
         private String cardholderNumber;
         private String updatecode;
         private String cardtype;

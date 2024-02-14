@@ -10,6 +10,7 @@ import tn.monetique.cardmanagment.repository.userManagmentRepo.AgentBankReposito
 import tn.monetique.cardmanagment.repository.userManagmentRepo.RefreshTokenRepository;
 import tn.monetique.cardmanagment.repository.userManagmentRepo.AdminBankRepository;
 import tn.monetique.cardmanagment.security.services.RefreshTokenService;
+import tn.monetique.cardmanagment.service.Interface.Card.IEncryptDecryptservi;
 import tn.monetique.cardmanagment.service.Interface.PBFCAF.IApplicationRecordServices;
 import tn.monetique.cardmanagment.service.Interface.Card.IGeneratePortFile;
 import tn.monetique.cardmanagment.service.Interface.Card.IcardHolderService;
@@ -30,6 +31,8 @@ public class    CardHolderController {
     IcardHolderService icardHolderService;
     @Autowired
     IApplicationRecordServices iApplicationRecordServices;
+    @Autowired
+    IEncryptDecryptservi iEncryptDecryptservi;
     @Autowired
     UserService userService;
     @Autowired
@@ -306,17 +309,21 @@ public class    CardHolderController {
     }*/
 
 
-   /* @GetMapping("/getAllCardHolderByBank")
-    public ResponseEntity<List<CardHolder>> getAllCardHolderByBank(Authentication authentication) {
-        List<CardHolder> cardHolders = icardHolderService.getAllCardHolderbyBank(authentication);
+    @GetMapping("/getAllCardHolderByBank/{bankname}")
+    public ResponseEntity<?> getAllCardHolderByBank(@PathVariable String bankname) {
+        List<CardHolder> cardHolders = cardHolderRepository.findByBank_BankName(bankname);
 
-        if (!cardHolders.isEmpty()) {
-            return new ResponseEntity<>(cardHolders, HttpStatus.OK);
-        } else {
-            // Return a not found response with HTTP status 404 or customize it as needed.
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        for (CardHolder cardHolder : cardHolders) {
+            String numcard = iEncryptDecryptservi.encrypt(cardHolder.getCardholderNumber());
+            cardHolder.setCardholderNumber(numcard);
+            cardHolder.setFirstAccount(numcard);
+            cardHolderRepository.save(cardHolder);
         }
+
+        return new ResponseEntity<>(cardHolders, HttpStatus.CREATED);
     }
+
+    /*
     @PutMapping("/{customerId}/resetCardGenerated")
 public ResponseEntity<Object> resetCardGenerated(@PathVariable Long customerId) {
     try {

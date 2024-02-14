@@ -167,7 +167,7 @@ public class GeneratePortFile implements IGeneratePortFile {
         String BankIdCode = adminBank.getBank().getBankIdCode().toString();
         String bankname= adminBank.getBank().getBankName();
         try {
-            String timestamp = new SimpleDateFormat("yyyy_MM_dd").format(new Date());
+            String timestamp = new SimpleDateFormat("yyyyMMdd").format(new Date());
             String fileName = "PORT"+BankIdCode+"-" + timestamp +".txt"; // Specify the desired file name
             // Obtain the application's working directory
             String workingDirectory = System.getProperty("user.dir");

@@ -68,7 +68,7 @@ public class CardHolderService implements IcardHolderService {
 
         Bank bank = bankRepository.findByBankName(bankname).orElse(null);
         cardHolder.setBank(bank);
-        String cardNumber = generateUniqueCardNumber(Selectedbin.getBinValue());
+        String cardNumber = generateUniqueCardNumber(Selectedbin.getBinValue(),bankname);
         cardHolder.setCurrencycode(Selectedbin.getCurrency());
         cardHolder.setBin(Selectedbin.getBinValue());
         cardHolder.setBranchcode(Useragence.getBranchCode());
@@ -151,7 +151,7 @@ public class CardHolderService implements IcardHolderService {
                 System.out.println("cardgenerated");
                 // Only update the fields that need to be updated
                 if ("2".equals(updatedData.getUpdatecode())) {
-                    existingCardholder.setPassportId(iEncryptDecryptservi.encrypt(updatedData.getPassportId()));
+                    existingCardholder.setPassportId(updatedData.getPassportId());
                     existingCardholder.setAddress(updatedData.getAddress());
                     existingCardholder.setBirthDate(updatedData.getBirthDate());
                     existingCardholder.setCorporateName(updatedData.getCorporateName());
@@ -257,6 +257,10 @@ public class CardHolderService implements IcardHolderService {
         Bin selectedBin = binRepository.findById(selectedBinId).orElse(null);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String username = userDetails.getUsername();
+        AgentBank agentBank = agentBankRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("Fake user"));
+        Agence agencyofuser = agentBank.getAgence();
+        String bankname = agencyofuser.getBank().getBankName();
 
         if (existingCardholder != null) {
             if (!existingCardholder.isConfirmation()) {
@@ -264,9 +268,9 @@ public class CardHolderService implements IcardHolderService {
                 System.out.println("hamza222");
                 // Only update the fields that need to be updated
                 if (!existingCardholder.getBin().equals(selectedBin.getBinValue())) {
-                    String cardNumber = generateUniqueCardNumber(selectedBin.getBinValue());
+                    String cardNumber = generateUniqueCardNumber(selectedBin.getBinValue(),bankname);
                     existingCardholder.setCardholderNumber(iEncryptDecryptservi.encrypt(cardNumber));
-                    existingCardholder.setFirstAccount(iEncryptDecryptservi.encrypt(cardNumber));
+                    //existingCardholder.setFirstAccount(iEncryptDecryptservi.encrypt(cardNumber));
                     existingCardholder.setBin(selectedBin.getBinValue());
                     existingCardholder.setCurrencycode(selectedBin.getCurrency());
                     existingCardholder.setCardtype(selectedBin.getCardType());
@@ -434,15 +438,25 @@ public class CardHolderService implements IcardHolderService {
 
     ////////////////////////////////////Generation de num de card ///////////////////////////////////////////////////
 
-    public String generateUniqueCardNumber(String bin) {
+    public String generateUniqueCardNumber(String bin ,String bankname ) {
         String cardNumber;
         String Fullcardnumber;
         boolean isUnique = false;
-
+         ;
         do {
             cardNumber = bin + generateCardNumber();
             Fullcardnumber= cardNumber + generateCheckDigitusingLuhn(cardNumber);
-            boolean exists = cardHolderRepository.existsByCardholderNumber(Fullcardnumber);
+            List<CardHolder> decCardNumbersbybanks = cardHolderRepository.findByBank_BankName(bankname);
+
+            boolean exists = false;
+            for (CardHolder decCardNumbersbybank : decCardNumbersbybanks) {
+                String excard = iEncryptDecryptservi.decrypt(decCardNumbersbybank.getCardholderNumber());
+                System.out.println("card:"+excard);
+                if (excard.equals(Fullcardnumber)) {
+                    exists = true;
+                    break;
+                }
+            }
             if (!exists) {
                 isUnique = true;
             }
