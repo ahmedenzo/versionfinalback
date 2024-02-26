@@ -83,7 +83,7 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
         cafApplicationDataRecord.setAtmData(atmData);
         cafApplicationDataRecord.setPosData(posData);
         cafApplicationDataRecord.setEmvData(emvData);
-        cafApplicationDataRecord.setCardStatus("C");
+        cafApplicationDataRecord.setCardStatus("1");
         cafApplicationDataRecord.setMbrNum("000");
         cafApplicationDataRecord.setCardType(cardHolder.getCardtype());
 
