@@ -188,14 +188,22 @@ public class    CardHolderController {
     }
     @PutMapping("/pbf-record/{pbfId}")
     public ResponseEntity<PBFApplicationDataRecord> updatePBFrecord(@PathVariable Long pbfId, @RequestBody PBFApplicationDataRecord newpbfApplicationDataRecord) {
-        PBFApplicationDataRecord updatedPBF = iApplicationRecordServices.updatePBFrecord(pbfId, newpbfApplicationDataRecord);
-        if (updatedPBF != null) {
+
+        try {
+            PBFApplicationDataRecord updatedPBF = iApplicationRecordServices.updatePBFrecord(pbfId, newpbfApplicationDataRecord);
             return ResponseEntity.ok(updatedPBF);
-        } else {
-            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            // Handle the exception appropriately
+            return ResponseEntity.badRequest().body(null); // Return a bad request response
+        } catch (Exception ex) {
+            // Handle other exceptions if necessary
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Return an internal server error response
         }
 
     }
+
+
+
     @PutMapping("/caf-record/{CafId}")
     public ResponseEntity<CAFApplicationDataRecord> updateCAFrecord(@PathVariable Long CafId, @RequestBody CAFApplicationDataRecord newCafApplicationDataRecord) {
         CAFApplicationDataRecord updatedCAF = iApplicationRecordServices.updateCAFrecord(CafId, newCafApplicationDataRecord);

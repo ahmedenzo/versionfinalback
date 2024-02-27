@@ -14,6 +14,7 @@ import tn.monetique.cardmanagment.Entities.ConfigBank.Agence;
 import tn.monetique.cardmanagment.Entities.ConfigBank.*;
 import tn.monetique.cardmanagment.repository.ApplicationDataRecord.CAFApplicationDataRecordRepository;
 import tn.monetique.cardmanagment.repository.ApplicationDataRecord.PBFApplicationDataRecordRepository;
+import tn.monetique.cardmanagment.repository.Bank.BinRepository;
 import tn.monetique.cardmanagment.repository.DataInputCard.CardHolderRepository;
 import tn.monetique.cardmanagment.repository.Configbankentitiesrepo.AtmDataRepository;
 import tn.monetique.cardmanagment.repository.Configbankentitiesrepo.EmvDataRepository;
@@ -71,6 +72,8 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
     IEncryptDecryptservi iEncryptDecryptservi;
     @Autowired
     CardHolderRepository cardHolderRepository;
+    @Autowired
+    private BinRepository binRepository;
 
     @Override
     public CAFApplicationDataRecord createCafApplication(CardHolder cardHolder, String BankName) {
@@ -645,18 +648,29 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
     @Override
     public PBFApplicationDataRecord updatePBFrecord(Long Idpbf, PBFApplicationDataRecord newpbfApplicationDataRecord) {
         PBFApplicationDataRecord existingPbf = getPBFApplicationDataRecordById(Idpbf);
-        //Optional<CardHolder> existcard = cardHolderRepository.findById(Idpbf);
         if (existingPbf != null) {
-            existingPbf.setLedgBal(newpbfApplicationDataRecord.getLedgBal());
-            existingPbf.setAvailBal(newpbfApplicationDataRecord.getAvailBal());
-            existingPbf.setPBFgenerated(false);
+            CardHolder cardHolder = existingPbf.getPbfCardHolder();
+            String binvalue = cardHolder.getBin();
+            Long maxbalance = binRepository.findBinByBinValue(binvalue).getMaxbalance();
 
-            existingPbf.setNumAccount(iEncryptDecryptservi.encrypt(newpbfApplicationDataRecord.getNumAccount()));
+            // Check if the new ledger balance and available balance are less than or equal to the max balance
+            if (newpbfApplicationDataRecord.getLedgBal() <= maxbalance &&
+                    newpbfApplicationDataRecord.getAvailBal() <= maxbalance) {
+                existingPbf.setLedgBal(newpbfApplicationDataRecord.getLedgBal());
+                existingPbf.setAvailBal(newpbfApplicationDataRecord.getAvailBal());
+                existingPbf.setPBFgenerated(false);
 
-            pbfApplicationDataRecordRepository.save(existingPbf);
+                existingPbf.setNumAccount(iEncryptDecryptservi.encrypt(newpbfApplicationDataRecord.getNumAccount()));
+
+                pbfApplicationDataRecordRepository.save(existingPbf);
+            } else {
+
+                throw new IllegalArgumentException("Ledger balance or available balance exceeds maximum allowed balance.");
+            }
         }
         return existingPbf;
     }
+
     @Override
     public CAFApplicationDataRecord updateCAFrecord(Long IdPBF, CAFApplicationDataRecord newCafApplicationDataRecord) {
         CAFApplicationDataRecord existingcaf = getCAfapplirecById(IdPBF);

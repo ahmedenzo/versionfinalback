@@ -14,4 +14,6 @@ public interface BinRepository extends JpaRepository<Bin, Long> {
     List<Bin> findAgencesByBank_BankId(Long bankid);
     Optional<Bin> findById(Long Id);
 
+    Bin findBinByBinValue(String binvalue);
+
 }
