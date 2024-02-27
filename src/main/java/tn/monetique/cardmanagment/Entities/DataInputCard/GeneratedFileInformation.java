@@ -21,6 +21,7 @@ public class GeneratedFileInformation {
     private String fileName;
     private String filePath;
     private String generatedBy;
+    private boolean sent=false;
     private String bankName;
     private Timestamp createdAt;
     @PrePersist

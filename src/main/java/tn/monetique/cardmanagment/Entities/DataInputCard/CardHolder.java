@@ -48,6 +48,7 @@ import java.time.LocalDate;
         private String julianDate;
         private String bankIdCode;
         private LocalDate BirthDate;
+        @Column(unique = true)
         private String passportId;
         private String freesCode;
         private String countryCode;

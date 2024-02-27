@@ -22,6 +22,8 @@ public class UploadedFile {
     @Column(nullable = false)
     private String UploadedBy;
     private Timestamp UploadedAt;
+
+    private boolean upoaded=false;
     @PrePersist
     protected void onCreate() { UploadedAt = new Timestamp(System.currentTimeMillis());
     }

@@ -3,12 +3,16 @@ package tn.monetique.cardmanagment.FTP;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import tn.monetique.cardmanagment.Entities.Auth_User.BankAdmin;
+import tn.monetique.cardmanagment.Entities.ConfigBank.Bank;
+import tn.monetique.cardmanagment.Entities.ConfigBank.BankFTPConfig;
 import tn.monetique.cardmanagment.Entities.DataInputCard.GeneratedFileInformation;
 import tn.monetique.cardmanagment.Entities.DataInputCard.UploadedFile;
+import tn.monetique.cardmanagment.repository.Bank.FTPConfigurationRepository;
 import tn.monetique.cardmanagment.repository.DataInputCard.UploadedFileRepository;
+import tn.monetique.cardmanagment.repository.userManagmentRepo.AdminBankRepository;
 import tn.monetique.cardmanagment.security.services.UserDetailsImpl;
 import tn.monetique.cardmanagment.service.Interface.Card.IGeneratePortFile;
 import tn.monetique.cardmanagment.service.Interface.GestionUserInterface.UserService;
@@ -25,27 +29,19 @@ public class FTPUploaderService implements IFTPUploader {
     UserService userService;
     @Autowired
     IGeneratePortFile iGeneratePortFile;
-    private final String server;
-    private final int port;
-    private final String username;
-    private final String password;
+    @Autowired
+    AdminBankRepository adminBankRepository;
+    @Autowired
+    FTPConfigurationRepository ftpConfigurationRepository;
     private final FTPClient ftpClient;
-
-    public FTPUploaderService  (
-            @Value("${ftp.server}") String server,
-            @Value("${ftp.port}") int port,
-            @Value("${ftp.username}") String username,
-            @Value("${ftp.password}") String password) {
-        this.server = server;
-        this.port = port;
-        this.username = username;
-        this.password = password;
+    public FTPUploaderService() {
         this.ftpClient = new FTPClient();
     }
+
     @Override
-    public boolean connect() throws IOException {
-        ftpClient.connect(server, port);
-        boolean success = ftpClient.login(username, password);
+    public boolean connect(BankFTPConfig ftpConfiguration) throws IOException {
+        ftpClient.connect(ftpConfiguration.getServer(), ftpConfiguration.getPort());
+        boolean success = ftpClient.login(ftpConfiguration.getUsername(), ftpConfiguration.getPassword());
         // Optionally, you can check if the connection and login were successful
         if (success) {
             System.out.println("Connected to FTP server with the expected credentials.");
@@ -56,18 +52,22 @@ public class FTPUploaderService implements IFTPUploader {
     }
     @Override
     public boolean uploadFiles(List<Long> fileInformationIds, Authentication authentication) throws IOException {
-        String remotePath = "/hamza";
-        try {
-            // Connect to the FTP server
-            boolean connected = connect();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+        // Retrieve user's bank information
+        BankAdmin adminBank = adminBankRepository.findByUsername(username).orElse(null);
+        Bank bank = adminBank.getBank();
 
-            if (!connected) {
-                System.out.println("Failed to connect to FTP server.");
+        try {
+            BankFTPConfig ftpConfiguration = ftpConfigurationRepository.findByBank(bank);
+            if (ftpConfiguration == null) {
+                System.out.println("FTP configuration not found for the user's bank.");
                 return false;
             }
+            ftpClient.connect(ftpConfiguration.getServer(), ftpConfiguration.getPort());
+            boolean success = ftpClient.login(ftpConfiguration.getUsername(), ftpConfiguration.getPassword());
 
-            // Change working directory to the remote path
-            ftpClient.changeWorkingDirectory(remotePath);
+            ftpClient.changeWorkingDirectory(ftpConfiguration.getRemotePath());
 
             // Set file transfer mode to binary
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
@@ -78,7 +78,7 @@ public class FTPUploaderService implements IFTPUploader {
                 GeneratedFileInformation fileInformation = iGeneratePortFile.getfilebyid(fileInformationId);
                 if (fileInformation != null) {
                     String fileName = fileInformation.getFileName();
-                    String filePath = fileInformation.getFilePath(); // Assuming this contains the local file path
+                    String filePath = fileInformation.getFilePath();
                     FileInputStream fileInputStream = new FileInputStream(filePath);
 
                     // Upload the file
@@ -87,9 +87,9 @@ public class FTPUploaderService implements IFTPUploader {
                         System.out.println("File " + fileName + " uploaded successfully.");
                         UploadedFile uploadedFile = new UploadedFile();
                         uploadedFile.setFileName(fileName);
-                        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-                        String username =userDetails.getUsername();
                         uploadedFile.setUploadedBy(username);
+                        uploadedFile.setUpoaded(true);
+                        fileInformation.setSent(true);
                         uploadedFileRepository.save(uploadedFile);
                     } else {
                         System.out.println("Failed to upload file " + fileName);

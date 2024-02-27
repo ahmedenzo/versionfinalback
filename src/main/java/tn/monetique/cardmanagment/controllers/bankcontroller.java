@@ -6,15 +6,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.monetique.cardmanagment.Entities.ConfigBank.Bank;
 
+import tn.monetique.cardmanagment.Entities.ConfigBank.BankFTPConfig;
 import tn.monetique.cardmanagment.payload.request.ConfigureDataRequest;
 import tn.monetique.cardmanagment.payload.response.ConfigureDataResponse;
-import tn.monetique.cardmanagment.service.Interface.BankConfig.IAtmDataService;
-import tn.monetique.cardmanagment.service.Interface.BankConfig.IEmvDataServices;
-import tn.monetique.cardmanagment.service.Interface.BankConfig.IPOSPBFXDServices;
-import tn.monetique.cardmanagment.service.Interface.BankConfig.IPosDataService;
-import tn.monetique.cardmanagment.service.Interface.BankConfig.Ibankservice;
+import tn.monetique.cardmanagment.service.Interface.BankConfig.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
     @RequestMapping("/api/auth/banks")
@@ -22,13 +20,15 @@ import java.util.List;
         @Autowired
         private Ibankservice ibankservice;
         @Autowired
-    IAtmDataService iAtmDataService;
+        IAtmDataService iAtmDataService;
         @Autowired
-    IEmvDataServices iEmvDataServices;
+        IEmvDataServices iEmvDataServices;
         @Autowired
-    IPOSPBFXDServices ipospbfxdServices;
+        IPOSPBFXDServices ipospbfxdServices;
         @Autowired
-    IPosDataService iPosDataService;
+        IPosDataService iPosDataService;
+        @Autowired
+    IftpConfigurationService iftpConfigurationService;
 
         @PostMapping
         public ResponseEntity<Bank> createBank(@RequestBody Bank bank) {
@@ -72,7 +72,52 @@ import java.util.List;
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    ////////////FTP config /////////////////////
+    @PostMapping("/ftpsave")
+    public ResponseEntity<BankFTPConfig> saveOrUpdateFTPConfiguration(@RequestBody BankFTPConfig ftpConfiguration) {
+        // You can perform validation here if needed
+
+        // Save or update FTP configuration
+        BankFTPConfig savedFTPConfiguration = iftpConfigurationService.saveFTPConfiguration(ftpConfiguration);
+
+        return ResponseEntity.ok(savedFTPConfiguration);
     }
+
+    // Endpoint to retrieve FTP configuration by bank ID
+    @GetMapping("/getftp-by-bank/{bankId}")
+    public ResponseEntity<BankFTPConfig> getFTPConfigurationByBank(@PathVariable Long bankId) {
+        // Retrieve bank by ID
+        Optional<Bank> optionalBank = ibankservice.getbankbyid(bankId);
+        Bank bank = optionalBank.get();
+        if (bank == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Retrieve FTP configuration by bank
+        BankFTPConfig ftpConfiguration = iftpConfigurationService.getFTPConfigurationByBank(bank);
+        if (ftpConfiguration == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(ftpConfiguration);
+    }
+
+    // Endpoint to delete FTP configuration by ID
+    @DeleteMapping("/ftpelete/{ftpConfigId}")
+    public ResponseEntity<Void> deleteFTPConfiguration(@PathVariable Long ftpConfigId) {
+        // Retrieve FTP configuration by ID
+        BankFTPConfig ftpConfiguration = iftpConfigurationService.getFTPConfigurationById(ftpConfigId);
+        if (ftpConfiguration == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Delete FTP configuration
+        iftpConfigurationService.deleteFTPConfiguration(ftpConfiguration);
+
+        return ResponseEntity.noContent().build();
+    }
+}
+
 
 
 

@@ -40,5 +40,7 @@ public class Bank implements Serializable {
         createdAt = new Timestamp(System.currentTimeMillis());
     }
 
-
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "ftp_config_id", referencedColumnName = "id")
+    private BankFTPConfig bankFTPConfig;
 }
