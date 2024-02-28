@@ -1,16 +1,19 @@
 package tn.monetique.cardmanagment.Entities.ConfigBank;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.io.Serializable;
 
 
 @Entity
 @Getter
 @Setter
 @AllArgsConstructor
-public class BankFTPConfig {
+public class BankFTPConfig implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +30,7 @@ public class BankFTPConfig {
 
     }
     @OneToOne(mappedBy = "bankFTPConfig")
+    @JsonIgnore
     private Bank bank;
 }
 
