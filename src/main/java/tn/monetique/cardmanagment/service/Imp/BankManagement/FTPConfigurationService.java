@@ -17,6 +17,7 @@ public class FTPConfigurationService implements IftpConfigurationService {
 
     @Autowired
     private FTPConfigurationRepository ftpConfigurationRepository;
+    @Autowired
     private BankRepository bankRepository;
 
     // Method to create or update FTP configuration
@@ -26,22 +27,26 @@ public class FTPConfigurationService implements IftpConfigurationService {
 
         if (optionalBank.isPresent()) {
             Bank bank = optionalBank.get();
-            // Set the association between Bank and BankFTPConfig
-            bank.setBankFTPConfig(ftpConfig);
-            ftpConfig.setBank(bank);
 
-            // Save the BankFTPConfig
-            BankFTPConfig savedFTPConfig = ftpConfigurationRepository.save(ftpConfig);
+            // Check if the bank already has an FTP configuration
+            if (bank.getBankFTPConfig() != null) {
+                // If an FTP configuration already exists, throw an exception
+                throw new IllegalStateException("Bank with ID " + bankId + " already has an FTP configuration");
+            } else {
+                // If no FTP configuration exists, associate the new FTP configuration with the bank
+                bank.setBankFTPConfig(ftpConfig);
+                ftpConfig.setBank(bank);
 
-            // Update the Bank entity to reflect the new association
-            bankRepository.save(bank);
-
-            return savedFTPConfig;
+                // Save the BankFTPConfig
+                return ftpConfigurationRepository.save(ftpConfig);
+            }
         } else {
             // Handle case where bank with the given ID is not found
             throw new BankNotFoundException("Bank with ID " + bankId + " not found");
         }
     }
+
+
     @Override
     public BankFTPConfig updateFTPConfiguration(Long ftpConfigId, BankFTPConfig updatedFTPConfig) {
         BankFTPConfig existingFTPConfig = ftpConfigurationRepository.findById(ftpConfigId)

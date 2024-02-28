@@ -106,7 +106,7 @@ import java.util.Optional;
 
         return ResponseEntity.ok(ftpConfiguration);
     }
-    @PutMapping("/ftpsave//{ftpConfigId}")
+    @PutMapping("/ftpsave/{ftpConfigId}")
     public ResponseEntity<Object> updateFTPConfiguration(
             @PathVariable Long ftpConfigId,
             @RequestBody BankFTPConfig bankFTPConfig) {
