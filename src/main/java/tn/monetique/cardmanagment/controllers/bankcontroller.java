@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import tn.monetique.cardmanagment.Entities.ConfigBank.Bank;
 
 import tn.monetique.cardmanagment.Entities.ConfigBank.BankFTPConfig;
+import tn.monetique.cardmanagment.exception.BankNotFoundException;
+import tn.monetique.cardmanagment.exception.FTPConfigNotFoundException;
 import tn.monetique.cardmanagment.payload.request.ConfigureDataRequest;
 import tn.monetique.cardmanagment.payload.response.ConfigureDataResponse;
 import tn.monetique.cardmanagment.service.Interface.BankConfig.*;
@@ -73,14 +75,17 @@ import java.util.Optional;
         }
     }
     ////////////FTP config /////////////////////
-    @PostMapping("/ftpsave")
-    public ResponseEntity<BankFTPConfig> saveOrUpdateFTPConfiguration(@RequestBody BankFTPConfig ftpConfiguration) {
-        // You can perform validation here if needed
 
-        // Save or update FTP configuration
-        BankFTPConfig savedFTPConfiguration = iftpConfigurationService.saveFTPConfiguration(ftpConfiguration);
-
-        return ResponseEntity.ok(savedFTPConfiguration);
+    @PostMapping("/ftpsave/{bankId}")
+    public ResponseEntity<Object> createAndAssignFTPConfiguration(
+            @PathVariable Long bankId,
+            @RequestBody BankFTPConfig bankFTPConfig) {
+        try {
+            BankFTPConfig savedFTPConfig = iftpConfigurationService.createAndAssignFTPConfiguration(bankId, bankFTPConfig);
+            return ResponseEntity.ok(savedFTPConfig);
+        } catch (BankNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     // Endpoint to retrieve FTP configuration by bank ID
@@ -100,6 +105,17 @@ import java.util.Optional;
         }
 
         return ResponseEntity.ok(ftpConfiguration);
+    }
+    @PutMapping("/ftpsave//{ftpConfigId}")
+    public ResponseEntity<Object> updateFTPConfiguration(
+            @PathVariable Long ftpConfigId,
+            @RequestBody BankFTPConfig bankFTPConfig) {
+        try {
+            BankFTPConfig updatedFTPConfig = iftpConfigurationService.updateFTPConfiguration(ftpConfigId, bankFTPConfig);
+            return ResponseEntity.ok(updatedFTPConfig);
+        } catch (FTPConfigNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     // Endpoint to delete FTP configuration by ID
