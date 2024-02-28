@@ -175,9 +175,16 @@ public class AuthController {
             UserResponse response = new UserResponse(agentBank.getId(),
                     agentBank.getUsername(), agentBank.getImage(), agentBank.getEmail(),agentBank.getFullname(),agentBank.getPhone());
             return ResponseEntity.ok(response);
+        }else if (optinalMonetique.isPresent()) {
+            MonetiqueAdmin monetiqueAdmin = optinalMonetique.get();
+            UserResponse response = new UserResponse(monetiqueAdmin.getId(),
+                    monetiqueAdmin.getUsername(), monetiqueAdmin.getImage(), monetiqueAdmin.getEmail(),monetiqueAdmin.getFullname(),monetiqueAdmin.getPhone());
+            return ResponseEntity.ok(response);
         }
+
+
         else {
-            throw new RuntimeException("Error: Bank Admin or Agent  not found Lotfi.");
+            throw new RuntimeException("Error: User not found.");
         }
     }
 

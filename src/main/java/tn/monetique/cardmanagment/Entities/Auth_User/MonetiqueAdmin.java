@@ -27,6 +27,9 @@ public class MonetiqueAdmin {
     private String passwordResetToken;
     private String image;
     private String cantactphone;
+    private String fullname;
+    private Long  phone;
+
     @NotBlank
     @Size(max = 50)
     @Email
