@@ -24,4 +24,6 @@ public interface Ibankservice {
 
 
     ConfigureDataResponse configureData(ConfigureDataRequest request, Long BinId);
+
+    abstract ConfigureDataResponse GETconfigureDatabybin(Long BinId);
 }

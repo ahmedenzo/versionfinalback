@@ -1,6 +1,7 @@
 package tn.monetique.cardmanagment.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.monetique.cardmanagment.SmtpConfig.IsmtpConfigService;
@@ -23,13 +24,23 @@ public class SmtpConfigController {
         }
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<String> updateSmtpConfig(@RequestBody SmtpConfig newConfig) {
+    @PutMapping("/update")
+    public ResponseEntity<SmtpConfig> updateSmtpConfig(@RequestBody SmtpConfig newConfig) {
         SmtpConfig updatedConfig = smtpConfigService.updateSmtpConfig(newConfig);
         if (updatedConfig != null) {
-            return ResponseEntity.ok("SMTP configuration updated successfully.");
+            return new ResponseEntity<>(updatedConfig, HttpStatus.CREATED);
         } else {
-            return ResponseEntity.badRequest().body("Failed to update SMTP configuration.");
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<SmtpConfig> createSMtp(@RequestBody SmtpConfig newConfig) {
+        SmtpConfig updatedConfig = smtpConfigService.updateSmtpConfig(newConfig);
+        if (updatedConfig != null) {
+            return new ResponseEntity<>(updatedConfig, HttpStatus.CREATED);
+        } else {
+            return ResponseEntity.badRequest().build();
         }
     }
 }

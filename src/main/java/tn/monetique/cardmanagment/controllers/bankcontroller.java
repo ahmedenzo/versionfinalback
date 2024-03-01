@@ -30,7 +30,7 @@ import java.util.Optional;
         @Autowired
         IPosDataService iPosDataService;
         @Autowired
-    IftpConfigurationService iftpConfigurationService;
+        IftpConfigurationService iftpConfigurationService;
 
         @PostMapping
         public ResponseEntity<Bank> createBank(@RequestBody Bank bank) {
@@ -74,6 +74,18 @@ import java.util.Optional;
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    @GetMapping("/configureData/{BinID}")
+    public ResponseEntity<ConfigureDataResponse> GETconfigureDatabybin(@PathVariable Long BinID) {
+        try {
+            ConfigureDataResponse configureDataResponse = ibankservice.GETconfigureDatabybin(BinID);
+            return ResponseEntity.ok(configureDataResponse);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+
     ////////////FTP config /////////////////////
 
     @PostMapping("/ftpsave/{bankId}")

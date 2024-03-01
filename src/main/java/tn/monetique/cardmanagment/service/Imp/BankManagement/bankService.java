@@ -166,6 +166,26 @@ public class bankService implements Ibankservice {
             return configureDataResponse;
 
         }
+
+    @Override
+    public ConfigureDataResponse GETconfigureDatabybin(Long BinId) {
+        ConfigureDataResponse configureDataResponse = new ConfigureDataResponse();
+
+        // Find existing data for each entity type
+        Optional<AtmData> existingAtmData = atmDataRepository.findByBin_BinId(BinId);
+        Optional<EmvData> existingEmvData = emvDataRepository.findByBin_BinId(BinId);
+        Optional<PosData> existingPosData = posDataRepository.findByBin_BinId(BinId);
+        Optional<POSPBFXD> existingPosPbfXd = pospbfxdRepository.findByBin_BinId(BinId);
+
+        // Set the found data in the response object
+        existingAtmData.ifPresent(configureDataResponse::setConfiguredAtmData);
+        existingEmvData.ifPresent(configureDataResponse::setConfiguredEmvData);
+        existingPosData.ifPresent(configureDataResponse::setConfiguredPosData);
+        existingPosPbfXd.ifPresent(configureDataResponse::setConfiguredPOSPBFXD);
+
+        return configureDataResponse;
+    }
+
     private boolean bankHasAtmData(Long BinId) {
         Optional<AtmData> atmData = atmDataRepository.findByBin_BinId(BinId);
         return atmData.isPresent();

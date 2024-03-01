@@ -9,13 +9,12 @@ public class SmtpConfigService implements IsmtpConfigService {
     private SmtpConfigRepository smtpConfigRepository;
 @Override
     public SmtpConfig getSmtpConfig() {
-        return smtpConfigRepository.findById(1L).orElse(null); // Assuming ID 1 always represents the SMTP configuration
+        return smtpConfigRepository.findById(1L).orElse(null);
     }
 @Override
     public SmtpConfig updateSmtpConfig(SmtpConfig newConfig) {
         SmtpConfig existingConfig = smtpConfigRepository.findById(1L).orElse(null);
         if (existingConfig != null) {
-            // Update existing config
             existingConfig.setHost(newConfig.getHost());
             existingConfig.setPort(newConfig.getPort());
             existingConfig.setUsername(newConfig.getUsername());
@@ -24,7 +23,6 @@ public class SmtpConfigService implements IsmtpConfigService {
             existingConfig.setStarttls(newConfig.isStarttls());
             return smtpConfigRepository.save(existingConfig);
         } else {
-            // Create new config if it doesn't exist
             newConfig.setId(1L);
             return smtpConfigRepository.save(newConfig);
         }
