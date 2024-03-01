@@ -23,7 +23,6 @@ public class Bin implements Serializable {
     private String cardType;
     private String codeType;
     private String currency;
-    private Long maxbalance;
     private String territorycode;
     private Timestamp createdAt;
     private Timestamp updatedAt;

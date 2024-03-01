@@ -649,13 +649,7 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
     public PBFApplicationDataRecord updatePBFrecord(Long Idpbf, PBFApplicationDataRecord newpbfApplicationDataRecord) {
         PBFApplicationDataRecord existingPbf = getPBFApplicationDataRecordById(Idpbf);
         if (existingPbf != null) {
-            CardHolder cardHolder = existingPbf.getPbfCardHolder();
-            String binvalue = cardHolder.getBin();
-            Long maxbalance = binRepository.findBinByBinValue(binvalue).getMaxbalance();
 
-            // Check if the new ledger balance and available balance are less than or equal to the max balance
-            if (newpbfApplicationDataRecord.getLedgBal() <= maxbalance &&
-                    newpbfApplicationDataRecord.getAvailBal() <= maxbalance) {
                 existingPbf.setLedgBal(newpbfApplicationDataRecord.getLedgBal());
                 existingPbf.setAvailBal(newpbfApplicationDataRecord.getAvailBal());
                 existingPbf.setPBFgenerated(false);
@@ -667,7 +661,7 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
 
                 throw new IllegalArgumentException("Ledger balance or available balance exceeds maximum allowed balance.");
             }
-        }
+
         return existingPbf;
     }
 

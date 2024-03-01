@@ -114,7 +114,7 @@ public class bankService implements Ibankservice {
             PosData posData = (PosData) request.getPosData();
 
             ConfigureDataResponse configureDataResponse = new ConfigureDataResponse();
-
+////////////////////////////////////////ATM/////////////////////////
             Optional<AtmData> existingAtmData = atmDataRepository.findByBin_BinId(BinId);
             if (existingAtmData.isPresent()) {
                 // Data exists, update it
@@ -126,7 +126,7 @@ public class bankService implements Ibankservice {
                 AtmData configuredAtmData = atmDataService.CreateAtmData(atmData, BinId);
                 configureDataResponse.setConfiguredAtmData(configuredAtmData);
             }
-
+///////////////////EMV///////////////////////////////////////
             Optional<EmvData> existingEmvData = emvDataRepository.findByBin_BinId(BinId);
             if (existingEmvData.isPresent()) {
                 // Data exists, update it
@@ -138,7 +138,7 @@ public class bankService implements Ibankservice {
                 EmvData configuredEmvData = emvDataService.CreateEmvData(emvData, BinId);
                 configureDataResponse.setConfiguredEmvData(configuredEmvData);
             }
-
+//////////////////////////////POS///////////////////////////////////
             Optional<PosData> existingPosData = posDataRepository.findByBin_BinId(BinId);
             if (existingPosData.isPresent()) {
                 // Data exists, update it
@@ -150,7 +150,7 @@ public class bankService implements Ibankservice {
                 PosData configuredPosData = posDataService.createPosData(posData, BinId);
                 configureDataResponse.setConfiguredPosData(configuredPosData);
             }
-
+/////////////////////////////POsPBF//////////////////////////////
             Optional<POSPBFXD> existingPosPbfXd = pospbfxdRepository.findByBin_BinId(BinId);
             if (existingPosPbfXd.isPresent()) {
                 // Data exists, update it

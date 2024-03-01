@@ -42,7 +42,6 @@ public class BinService implements IbinService {
             existingbin.setCardBrand(updatedbin.getCardBrand());
             existingbin.setCardType(updatedbin.getCardType());
             existingbin.setCodeType(updatedbin.getCodeType());
-            existingbin.setMaxbalance(updatedbin.getMaxbalance());
             existingbin.setCurrency(updatedbin.getCurrency());
 
 
