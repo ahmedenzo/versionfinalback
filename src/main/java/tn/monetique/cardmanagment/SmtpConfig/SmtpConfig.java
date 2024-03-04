@@ -12,9 +12,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class SmtpConfig {
         @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
-
+        private Long id=1L;
         private String host;
         private int port;
         private String username;

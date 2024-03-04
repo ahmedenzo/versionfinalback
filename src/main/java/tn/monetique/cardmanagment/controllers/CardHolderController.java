@@ -53,12 +53,14 @@ public class    CardHolderController {
 
 
     @PostMapping("/CreateNewCard")
-    public ResponseEntity<?> addwithoutauthen(@RequestParam Long selectedBinId , @RequestBody CardHolder cardHolder,Authentication authentication ) {
+    public ResponseEntity<?> CreateNewCard(@RequestParam Long selectedBinId , @RequestBody CardHolder cardHolder,Authentication authentication ) {
         try {
             CardHolder addedCarddatainPut = icardHolderService.createNewCard(cardHolder, selectedBinId, authentication);
             return new ResponseEntity<>(addedCarddatainPut, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>( HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) { // Catch the specific exception thrown by createNewCard method
+            return new ResponseEntity<>("User already has a card", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) { // Catch other unexpected exceptions
+            return new ResponseEntity<>("Failed to create card", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     @PutMapping("/{customerId}/update/{selectedBinId}")

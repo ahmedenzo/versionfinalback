@@ -136,6 +136,14 @@ public class CardHolderService implements IcardHolderService {
 
         String bankname = agencyofuser.getBank().getBankName();
         Bin Selectedbin = binRepository.findById(SelectedbinId).orElse(null);
+        CardHolder existingCardHolder = cardHolderRepository.findByPassportId(cardHolder.getPassportId());
+        if (existingCardHolder != null) {
+            // Return an error indicating that the user already has a card
+            throw new RuntimeException("User already has a card");
+        }
+
+
+
         CardHolder createdCardHolder = DataINPutpreparation(cardHolder,bankname,Selectedbin,agencyofuser,username);
         return createdCardHolder;
     }
