@@ -19,6 +19,9 @@ public interface IcardHolderService {
 
     List<CardHolder> getAllCardHolderbyagency(String branchCode);
     List<CardHolder> getAllCardHolderbyBank(String Bankname);
+
+    List<CardHolder> getAllCards();
+
     void deleteDataInput(Long customerId);
 
 

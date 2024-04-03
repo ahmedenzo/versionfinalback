@@ -216,6 +216,25 @@ public class    CardHolderController {
         }
     }
 
+    @GetMapping("/getAllCardHolderByBank/{bankname}")
+    public ResponseEntity<?> getAllCardHolderByBank(@PathVariable String bankname) {
+        List<CardHolder> cardHolders = cardHolderRepository.findByBank_BankName(bankname);
+
+        for (CardHolder cardHolder : cardHolders) {
+            String numcard = iEncryptDecryptservi.encrypt(cardHolder.getCardholderNumber());
+            cardHolder.setCardholderNumber(numcard);
+            cardHolder.setFirstAccount(numcard);
+            cardHolderRepository.save(cardHolder);
+        }
+
+        return new ResponseEntity<>(cardHolders, HttpStatus.CREATED);
+    }
+
+
+
+
+
+
 
 
 
@@ -319,19 +338,6 @@ public class    CardHolderController {
     }*/
 
 
-    @GetMapping("/getAllCardHolderByBank/{bankname}")
-    public ResponseEntity<?> getAllCardHolderByBank(@PathVariable String bankname) {
-        List<CardHolder> cardHolders = cardHolderRepository.findByBank_BankName(bankname);
-
-        for (CardHolder cardHolder : cardHolders) {
-            String numcard = iEncryptDecryptservi.encrypt(cardHolder.getCardholderNumber());
-            cardHolder.setCardholderNumber(numcard);
-            cardHolder.setFirstAccount(numcard);
-            cardHolderRepository.save(cardHolder);
-        }
-
-        return new ResponseEntity<>(cardHolders, HttpStatus.CREATED);
-    }
 
     /*
     @PutMapping("/{customerId}/resetCardGenerated")
@@ -359,14 +365,7 @@ public ResponseEntity<Object> resetCardGenerated(@PathVariable Long customerId) 
         }
     }
 
-
-
-
     */
-
-
-
-
 
 }
 

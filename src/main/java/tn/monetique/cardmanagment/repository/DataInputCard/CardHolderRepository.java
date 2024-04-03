@@ -16,6 +16,8 @@ public interface CardHolderRepository extends JpaRepository<CardHolder, Long> {
     Optional<CardHolder> findById( Long CustomerId);
     List<CardHolder>findByBranchcode(String brancheCode);
 
+
+    List<CardHolder> findAll();
     boolean existsByCardholderNumber(String CardholderNumber);
 
     CardHolder findByPassportId(String passport);

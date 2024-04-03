@@ -16,7 +16,7 @@ public class EmvData implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long emvDataId;
-    private String segxLgth;
+    private String segxLgth="0028";
     private String atcLimit;
     private String sendCardBlock;
     private String sendPutData;

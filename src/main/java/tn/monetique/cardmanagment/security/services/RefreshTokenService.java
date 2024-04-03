@@ -21,7 +21,7 @@ import tn.monetique.cardmanagment.repository.userManagmentRepo.AdminBankReposito
 
 @Service
 public class RefreshTokenService {
-  @Value("${bezkoder.app.jwtRefreshExpirationMs}")
+  @Value("${CARD.app.jwtRefreshExpirationMs}")
   private Long refreshTokenDurationMs;
   @Autowired
   private RefreshTokenRepository refreshTokenRepository;

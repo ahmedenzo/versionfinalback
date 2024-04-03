@@ -113,7 +113,7 @@ public class CardHolderService implements IcardHolderService {
         }
         else{
             cardHolder.setFirstAccount(iEncryptDecryptservi.encrypt(cardHolder.getFirstAccount()));
-            System.out.println("d5al elese");
+            System.out.println("d5al else");
         }
 
         if (cardHolder.getSecondAccount()!=null){
@@ -159,7 +159,9 @@ public class CardHolderService implements IcardHolderService {
                 System.out.println("cardgenerated");
                 // Only update the fields that need to be updated
                 if ("2".equals(updatedData.getUpdatecode())) {
-                    existingCardholder.setPassportId(updatedData.getPassportId());
+                    existingCardholder.setPassportId(existingCardholder.getPassportId());
+                    existingCardholder.setPhoneNumber(existingCardholder.getPhoneNumber());
+                    existingCardholder.setCin(existingCardholder.getCin());
                     existingCardholder.setAddress(updatedData.getAddress());
                     existingCardholder.setBirthDate(updatedData.getBirthDate());
                     existingCardholder.setCorporateName(updatedData.getCorporateName());
@@ -167,8 +169,7 @@ public class CardHolderService implements IcardHolderService {
                             .encrypt(existingCardholder.getFirstAccount()));
                     existingCardholder.setEmail(updatedData.getEmail());
                     existingCardholder.setName(updatedData.getName());
-                    existingCardholder.setPhoneNumber(updatedData.getPhoneNumber());
-                    existingCardholder.setCin(updatedData.getCin());
+
                     existingCardholder.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
                     existingCardholder.setUpdatedBy(username);
                     existingCardholder.setUpdatecode(updatedData.getUpdatecode());
@@ -297,9 +298,12 @@ public class CardHolderService implements IcardHolderService {
                     existingCardholder.setDate2(formattedDate2);
                 }
 
-                if (updatedData.getPassportId() != null) {
-                    existingCardholder.setPassportId(updatedData.getPassportId());
+                CardHolder existingCardHolder = cardHolderRepository.findByPassportId(existingCardholder.getPassportId());
+                if (existingCardHolder != null) {
+                    // Return an error indicating that the user already has a card
+                    throw new RuntimeException("User already has a card");
                 }
+
                 existingCardholder.setAddress(updatedData.getAddress());
                 existingCardholder.setBirthDate(updatedData.getBirthDate());
                 existingCardholder.setCorporateName(updatedData.getCorporateName());
@@ -394,6 +398,20 @@ public class CardHolderService implements IcardHolderService {
 
             return cardHolders;
         }
+
+    @Override
+    public List<CardHolder> getAllCards() {
+
+        List<CardHolder> cardHolders = cardHolderRepository.findAll();
+
+        for (CardHolder cardHolder : cardHolders) {
+            cardHolder.setCardholderNumber(iEncryptDecryptservi.decrypt(cardHolder.getCardholderNumber()));
+            cardHolder.setFirstAccount(iEncryptDecryptservi.decrypt(cardHolder.getFirstAccount()));
+        }
+
+        return cardHolders;
+    }
+
 
 
     @Override
