@@ -44,6 +44,7 @@ public class AgentBank implements Serializable {
     private String twoFactorCode; // Nullable; check if null to determine if it's set
     private Boolean isTwoFactorEnabled = false;  // A flag to check if 2FA is active
     private String qrCodeUrl;
+    private Boolean active=false;
 
 
     @ManyToMany(fetch = FetchType.LAZY)

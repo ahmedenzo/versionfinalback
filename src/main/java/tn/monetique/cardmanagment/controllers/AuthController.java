@@ -99,6 +99,10 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new MessageResponse("Error: Email not confirmed for user: " + loginRequest.getUsername()));
             }
+            if (!agentBank.getActive()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new MessageResponse("Error: User is blocked"));
+            }
 
             refreshToken = refreshTokenService.createRefreshTokenForagent(agentBank.getId());
             System.out.println(jwt);
@@ -138,6 +142,10 @@ public class AuthController {
             if (!bankAdmin.getConfirme()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new MessageResponse("Error: Email not confirmed for bankAdmin: " + bankAdmin.getUsername()));
+            }
+            if (!bankAdmin.getActive()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new MessageResponse("Error: User is blocked"));
             }
 
             refreshToken = refreshTokenService.createRefreshTokenforadminbank(bankAdmin.getId());

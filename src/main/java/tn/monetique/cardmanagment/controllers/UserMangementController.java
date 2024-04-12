@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
@@ -74,7 +75,8 @@ public class UserMangementController {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Error: Email is already in use!"));
-        }  if (monetiqueAdminRepo.existsByUsername(signupRequest.getUsername())) {
+        }
+        if (monetiqueAdminRepo.existsByUsername(signupRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Error: Username is already in use!"));
@@ -112,8 +114,9 @@ public class UserMangementController {
 
         return ResponseEntity.ok(new MessageResponse("Monetique admin added succesfuly"));
     }
+
     @PostMapping("/signup/adminbank")
-    public ResponseEntity<?> registerAdminBank(@RequestBody SignupRequest signupRequest,@RequestParam String bankname) {
+    public ResponseEntity<?> registerAdminBank(@RequestBody SignupRequest signupRequest, @RequestParam String bankname) {
         if (adminBankRepository.existsByEmail(signupRequest.getEmail())) {
             return ResponseEntity
                     .badRequest()
@@ -145,7 +148,7 @@ public class UserMangementController {
         String confirmationUrl = "http://localhost:8085/api/auth/confirm?confirmationToken=" + bankAdmin.getConfirmationToken();
         String message = "To confirm your account, please click here: " + confirmationUrl;
 
-        emailService.sendSimpleMessage(new Email("lotfi.najahi@monetiquetunisie.com",signupRequest.getEmail(), "Account Confirmation", message));
+        emailService.sendSimpleMessage(new Email("lotfi.najahi@monetiquetunisie.com", signupRequest.getEmail(), "Account Confirmation", message));
 
         return ResponseEntity.ok(new MessageResponse("A confirmation email has been sent to your email address."));
     }
@@ -188,12 +191,13 @@ public class UserMangementController {
         AgentBankRepository.save(agentBank);
 
         String confirmationUrl = "http://localhost:8085/api/auth/confirm?confirmationToken=" + agentBank.getConfirmationToken();
-        String message = "Your BankAdmin "+ agentBank.getUsername()+"Your Email is :"+ agentBank.getEmail()+"--Yor Password is :"+signupRequest.getPassword()+ "your Provider is"+ agentBank.getBankAdmin().getUsername() +"To confirm your account, please click here: " + confirmationUrl;
+        String message = "Your BankAdmin " + agentBank.getUsername() + "Your Email is :" + agentBank.getEmail() + "--Yor Password is :" + signupRequest.getPassword() + "your Provider is" + agentBank.getBankAdmin().getUsername() + "To confirm your account, please click here: " + confirmationUrl;
 
-        emailService.sendSimpleMessage(new Email(null,signupRequest.getEmail(), "Account Confirmation", message));
+        emailService.sendSimpleMessage(new Email(null, signupRequest.getEmail(), "Account Confirmation", message));
 
         return ResponseEntity.ok(new MessageResponse("A confirmation email has been sent to your email address."));
     }
+
     @PutMapping("/Updateid/{agentbankid}/role")
     public ResponseEntity<?> updateAgentBankRole(@PathVariable Long agentbankid, @RequestParam ERole roleName, Authentication authentication) {
         // Get the authenticated user's ID
@@ -219,6 +223,7 @@ public class UserMangementController {
 
         return ResponseEntity.ok(new ApiResponse(true, "Customer role updated successfully"));
     }
+
     @GetMapping("/roles")
     public ResponseEntity<List<Role>> getAllRoles() {
         List<Role> roles = roleRepository.findAll();
@@ -235,9 +240,8 @@ public class UserMangementController {
     @PostMapping("/completeProfile")
     public ResponseEntity<?> completeProfile(@Valid @RequestBody CompletProfile completProfileRequest) {
         // Get the user object by username from the database
-        Optional<BankAdmin> optionalbankAdmin =adminBankRepository.findByUsername(completProfileRequest.getUsername());
+        Optional<BankAdmin> optionalbankAdmin = adminBankRepository.findByUsername(completProfileRequest.getUsername());
         Optional<AgentBank> optionalagentBank = AgentBankRepository.findByUsername(completProfileRequest.getUsername());
-
 
 
         // Update the user object with the new profile information
@@ -248,7 +252,7 @@ public class UserMangementController {
             bankAdmin.setAdresse(completProfileRequest.getAdresse());
 
             adminBankRepository.save(bankAdmin);
-        }else if (optionalagentBank.isPresent()) {
+        } else if (optionalagentBank.isPresent()) {
             AgentBank agentBank = optionalagentBank.get();
 
             agentBank.setFullname(completProfileRequest.getFullname());
@@ -258,6 +262,7 @@ public class UserMangementController {
         }
         return ResponseEntity.ok(new MessageResponse("Your profile has been updated successfully."));
     }
+
     //////////////////////////////Upload Image//////////////////////
     @PostMapping("/{userId}/image")
     public ResponseEntity<?> uploadImage(@PathVariable Long userId, @RequestParam("file") MultipartFile file) {
@@ -308,6 +313,7 @@ public class UserMangementController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
     @GetMapping("/{userId}/image")
     public ResponseEntity<byte[]> getImage(@PathVariable Long userId) {
         // Get the bankAdmin or customer object by ID from the database
@@ -341,4 +347,68 @@ public class UserMangementController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @PutMapping("/{bankAdminId}/toggle-activeadmin")
+    public ResponseEntity<?> toggleBankAdminActive(@PathVariable Long bankAdminId, Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
+                .collect(Collectors.toList());
+
+        BankAdmin bankAdmin = adminBankRepository.findById(bankAdminId)
+                .orElseThrow(() -> new IllegalArgumentException("BankAdmin not found"));
+
+        if (roles.contains("Admin_SMT")) {
+            bankAdmin.setActive(!bankAdmin.getActive());
+            adminBankRepository.save(bankAdmin);
+
+            if (!bankAdmin.getActive()) {
+                for (AgentBank agentBank : bankAdmin.getAgentBanks()) {
+                    agentBank.setActive(bankAdmin.getActive());
+                    AgentBankRepository.save(agentBank);
+                }
+            }
+            return ResponseEntity.ok().build(); // Return 200 OK
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Return 401 Unauthorized
+        }
+    }
+    @PutMapping("/{bankAgentId}/toggle-activeAgent")
+    public ResponseEntity<?>toggleagentBankActive(@PathVariable Long bankAgentId,Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
+                .collect(Collectors.toList());
+        AgentBank bankAgent = AgentBankRepository.findById(bankAgentId)
+                .orElseThrow(() -> new IllegalArgumentException("AgentBank not found"));
+        if (roles.contains("Admin_Bank")) {
+            // Toggle the active attribute
+            bankAgent.setActive(!bankAgent.getActive());
+            AgentBankRepository.save(bankAgent);
+
+            return ResponseEntity.ok().build(); // Return 200 OK
+        }else{
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Return 401 Unauthorized
+        }
+    }
+
+    @PutMapping("/{bankAdminId}/toggleactivesadmin")
+    public void testtes(@PathVariable Long bankAdminId) {
+        BankAdmin bankAdmin = adminBankRepository.findById(bankAdminId)
+                .orElseThrow(() -> new IllegalArgumentException("BankAdmin not found"));
+        System.out.println("userbank" +bankAdmin);
+
+            // Toggle the active attribute
+            bankAdmin.setActive(!bankAdmin.getActive());
+            adminBankRepository.save(bankAdmin);
+
+            // Toggle the active attribute of associated AgentBanks
+            if (!bankAdmin.getActive()) {
+                for (AgentBank agentBank : bankAdmin.getAgentBanks()) {
+                    agentBank.setActive(bankAdmin.getActive());
+                    AgentBankRepository.save(agentBank);
+                }
+            }
+
+
+        }
+
 }

@@ -35,8 +35,9 @@ public class BankAdmin {
 	private String confirmationToken;
 	private String image;
 	private String fullname;
-	private Long  phone;
+	private Long phone;
 	private String adresse;
+	private Boolean active = false;
 	@NotBlank
 	@Size(max = 50)
 	@Email
@@ -44,7 +45,7 @@ public class BankAdmin {
 	@NotBlank
 	@Size(max = 120)
 	private String password;
-	private Boolean confirme =false;
+	private Boolean confirme = false;
 	@ManyToOne
 	@JoinColumn(name = "bank_id")
 	private Bank bank;
@@ -69,5 +70,16 @@ public class BankAdmin {
 		this.username = username;
 		this.email = email;
 		this.password = password;
+	}
+
+	// Setter for active field with logic to disable associated AgentBanks
+	public void setActive(Boolean active) {
+		this.active = active;
+		if (!active) {
+			// If the admin is being disabled, also disable associated AgentBanks
+			for (AgentBank agentBank : agentBanks) {
+				agentBank.setActive(false);
+			}
+		}
 	}
 }
