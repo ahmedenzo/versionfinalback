@@ -148,7 +148,7 @@ public class UserMangementController {
         String confirmationUrl = "http://localhost:8085/api/auth/confirm?confirmationToken=" + bankAdmin.getConfirmationToken();
         String message = "To confirm your account, please click here: " + confirmationUrl;
 
-        emailService.sendSimpleMessage(new Email("lotfi.najahi@monetiquetunisie.com", signupRequest.getEmail(), "Account Confirmation", message));
+        emailService.sendSimpleMessage(new Email("hamza.melki@monetiquetunisie.com", signupRequest.getEmail(), "Account Confirmation", message));
 
         return ResponseEntity.ok(new MessageResponse("A confirmation email has been sent to your email address."));
     }
@@ -193,7 +193,7 @@ public class UserMangementController {
         String confirmationUrl = "http://localhost:8085/api/auth/confirm?confirmationToken=" + agentBank.getConfirmationToken();
         String message = "Your BankAdmin " + agentBank.getUsername() + "Your Email is :" + agentBank.getEmail() + "--Yor Password is :" + signupRequest.getPassword() + "your Provider is" + agentBank.getBankAdmin().getUsername() + "To confirm your account, please click here: " + confirmationUrl;
 
-        emailService.sendSimpleMessage(new Email(null, signupRequest.getEmail(), "Account Confirmation", message));
+        emailService.sendSimpleMessage(new Email("hamza.melki@monetiquetunisie.com", signupRequest.getEmail(), "Account Confirmation", message));
 
         return ResponseEntity.ok(new MessageResponse("A confirmation email has been sent to your email address."));
     }
