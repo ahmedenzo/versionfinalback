@@ -57,8 +57,8 @@ public class FTPConfigurationService implements IftpConfigurationService {
         existingFTPConfig.setPort(updatedFTPConfig.getPort());
         existingFTPConfig.setUsername(updatedFTPConfig.getUsername());
         existingFTPConfig.setPassword(updatedFTPConfig.getPassword());
-        existingFTPConfig.setRemotePath(updatedFTPConfig.getRemotePath());
-
+        existingFTPConfig.setRemotePathPorter(updatedFTPConfig.getRemotePathPorter());
+        existingFTPConfig.setRemotePqthCAFPBF(updatedFTPConfig.getRemotePqthCAFPBF());
         // Save the updated FTP configuration
         return ftpConfigurationRepository.save(existingFTPConfig);
     }

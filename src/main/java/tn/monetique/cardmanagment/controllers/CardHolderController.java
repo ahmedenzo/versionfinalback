@@ -1,15 +1,20 @@
 package tn.monetique.cardmanagment.controllers;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import tn.monetique.cardmanagment.Entities.ApplicationDataRecord.CAFApplicationDataRecord;
 import tn.monetique.cardmanagment.Entities.ApplicationDataRecord.PBFApplicationDataRecord;
+import tn.monetique.cardmanagment.Entities.ConfigBank.Bank;
 import tn.monetique.cardmanagment.Entities.DataInputCard.CardHolder;
 import tn.monetique.cardmanagment.Entities.DataInputCard.GeneratedFileInformation;
 import tn.monetique.cardmanagment.repository.DataInputCard.CardHolderRepository;
 import tn.monetique.cardmanagment.repository.userManagmentRepo.AgentBankRepository;
 import tn.monetique.cardmanagment.repository.userManagmentRepo.RefreshTokenRepository;
 import tn.monetique.cardmanagment.repository.userManagmentRepo.AdminBankRepository;
+import tn.monetique.cardmanagment.repportandstatistique.Cardstatistique;
+import tn.monetique.cardmanagment.repportandstatistique.IcardStat;
 import tn.monetique.cardmanagment.security.services.RefreshTokenService;
+import tn.monetique.cardmanagment.security.services.UserDetailsImpl;
 import tn.monetique.cardmanagment.service.Interface.Card.IEncryptDecryptservi;
 import tn.monetique.cardmanagment.service.Interface.PBFCAF.IApplicationRecordServices;
 import tn.monetique.cardmanagment.service.Interface.Card.IGeneratePortFile;
@@ -20,7 +25,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 
@@ -39,6 +46,8 @@ public class    CardHolderController {
     private IGeneratePortFile iGeneratePortFile;
     @Autowired
     RefreshTokenService refreshTokenService;
+   @Autowired
+    IcardStat icardStat;
     @Autowired
     private AdminBankRepository adminBankRepository;
     @Autowired
@@ -48,7 +57,6 @@ public class    CardHolderController {
 
     @Autowired
     private CardHolderRepository cardHolderRepository;
-
 
 
 
@@ -230,8 +238,41 @@ public class    CardHolderController {
         return new ResponseEntity<>(cardHolders, HttpStatus.CREATED);
     }
 
+/////////////////////////////////statistique////////////////////////////
 
+    @GetMapping("/api/cards/statistics/daily")
+    public Long getDailyGeneratedCardsCount(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+            ,Authentication authentication
+    ) {
 
+        return icardStat.getGeneratedCardsCountForDay(date, authentication);
+    }
+
+    @GetMapping("/api/cards/statistics/monthly")
+    public Long getMonthlyGeneratedCardsCount(
+            @RequestParam int year,
+            @RequestParam int month,
+            Authentication authentication
+    ) {
+
+        return icardStat.getGeneratedCardsCountForMonth(year, month, authentication);
+    }
+
+    @GetMapping("/api/cards/statistics/by-type")
+    public Map<String, Long> getGeneratedCardsCountByType(
+            Authentication authentication
+    ) {
+
+        return icardStat.getGeneratedCardsCountByType(authentication);
+    }
+
+    @GetMapping("/api/cards/statistics/by-branch")
+    public Map<String, Long> getGeneratedCardsCountByBranch(Authentication authentication
+    ) {
+
+        return icardStat.getGeneratedCardsCountByBranch( authentication);
+    }
 
 
 

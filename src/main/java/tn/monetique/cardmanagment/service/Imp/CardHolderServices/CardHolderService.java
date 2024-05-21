@@ -299,13 +299,17 @@ public class CardHolderService implements IcardHolderService {
                 }
 
                 CardHolder existingCardHolder1 = cardHolderRepository.findByPassportId(updatedData.getPassportId());
-                if (existingCardHolder1 != null) {
-                    // Return an error indicating that the user already has a card
-                    throw new RuntimeException("User already has a card");
+                if (existingCardholder.getPassportId()== updatedData.getPassportId()) {
+                    existingCardholder.setPassportId(updatedData.getPassportId());
                 } else {
+                    if(existingCardHolder1!=null)
+                    {
+                        throw new RuntimeException("User already has a card");
+                    }
                     // Set the passport ID for the updated card holder
                     existingCardholder.setPassportId(updatedData.getPassportId());
                 }
+
 
                 existingCardholder.setAddress(updatedData.getAddress());
                 existingCardholder.setBirthDate(updatedData.getBirthDate());

@@ -1,7 +1,8 @@
 package tn.monetique.cardmanagment.FTP;
 
-import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
+import com.jcraft.jsch.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,6 @@ import tn.monetique.cardmanagment.repository.DataInputCard.UploadedFileRepositor
 import tn.monetique.cardmanagment.repository.userManagmentRepo.AdminBankRepository;
 import tn.monetique.cardmanagment.security.services.UserDetailsImpl;
 import tn.monetique.cardmanagment.service.Interface.Card.IGeneratePortFile;
-import tn.monetique.cardmanagment.service.Interface.GestionUserInterface.UserService;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,54 +23,63 @@ import java.util.List;
 
 @Service
 public class FTPUploaderService implements IFTPUploader {
+
+    private static final Logger logger = LoggerFactory.getLogger(FTPUploaderService.class);
+
+    private final UploadedFileRepository uploadedFileRepository;
+    private final IGeneratePortFile iGeneratePortFile;
+    private final AdminBankRepository adminBankRepository;
+    private final FTPConfigurationRepository ftpConfigurationRepository;
+
+    private Session session;
+    private ChannelSftp sftpChannel;
+
     @Autowired
-    UploadedFileRepository uploadedFileRepository;
-    @Autowired
-    UserService userService;
-    @Autowired
-    IGeneratePortFile iGeneratePortFile;
-    @Autowired
-    AdminBankRepository adminBankRepository;
-    @Autowired
-    FTPConfigurationRepository ftpConfigurationRepository;
-    private final FTPClient ftpClient;
-    public FTPUploaderService() {
-        this.ftpClient = new FTPClient();
+    public FTPUploaderService(UploadedFileRepository uploadedFileRepository, IGeneratePortFile iGeneratePortFile,
+                              AdminBankRepository adminBankRepository, FTPConfigurationRepository ftpConfigurationRepository) {
+        this.uploadedFileRepository = uploadedFileRepository;
+        this.iGeneratePortFile = iGeneratePortFile;
+        this.adminBankRepository = adminBankRepository;
+        this.ftpConfigurationRepository = ftpConfigurationRepository;
     }
 
     @Override
-    public boolean connect(BankFTPConfig ftpConfiguration) throws IOException {
-        ftpClient.connect(ftpConfiguration.getServer(), ftpConfiguration.getPort());
-        boolean success = ftpClient.login(ftpConfiguration.getUsername(), ftpConfiguration.getPassword());
-        // Optionally, you can check if the connection and login were successful
-        if (success) {
-            System.out.println("Connected to FTP server with the expected credentials.");
-        } else {
-            System.out.println("Failed to connect to FTP server with the provided credentials.");
+    public boolean connect(BankFTPConfig ftpConfiguration) {
+        JSch jsch = new JSch();
+        try {
+            session = jsch.getSession(ftpConfiguration.getUsername(), ftpConfiguration.getServer(), ftpConfiguration.getPort());
+            session.setPassword(ftpConfiguration.getPassword());
+            session.setConfig("StrictHostKeyChecking", "yes");
+            session.connect();
+            Channel channel = session.openChannel("sftp");
+            channel.connect();
+            sftpChannel = (ChannelSftp) channel;
+            return sftpChannel.isConnected();
+        } catch (JSchException e) {
+            logger.error("Failed to connect to SFTP server: {}", e.getMessage());
+            return false;
         }
-        return success;
     }
+
+
+
     @Override
-    public boolean uploadFiles(List<Long> fileInformationIds, Authentication authentication) throws IOException {
+    public boolean uploadFiles(List<Long> fileInformationIds, Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String username = userDetails.getUsername();
-        // Retrieve user's bank information
         BankAdmin adminBank = adminBankRepository.findByUsername(username).orElse(null);
         Bank bank = adminBank.getBank();
 
         try {
             BankFTPConfig ftpConfiguration = ftpConfigurationRepository.findByBank(bank);
             if (ftpConfiguration == null) {
-                System.out.println("FTP configuration not found for the user's bank.");
+                logger.error("FTP configuration not found for the user's bank.");
                 return false;
             }
-            ftpClient.connect(ftpConfiguration.getServer(), ftpConfiguration.getPort());
-            boolean success = ftpClient.login(ftpConfiguration.getUsername(), ftpConfiguration.getPassword());
-
-            ftpClient.changeWorkingDirectory(ftpConfiguration.getRemotePath());
-
-            // Set file transfer mode to binary
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+            if (!connect(ftpConfiguration)) {
+                logger.error("Failed to connect to SFTP server.");
+                return false;
+            }
 
             boolean allFilesUploaded = true;
 
@@ -79,43 +88,51 @@ public class FTPUploaderService implements IFTPUploader {
                 if (fileInformation != null) {
                     String fileName = fileInformation.getFileName();
                     String filePath = fileInformation.getFilePath();
-                    FileInputStream fileInputStream = new FileInputStream(filePath);
 
-                    // Upload the file
-                    boolean uploaded = ftpClient.storeFile(fileName, fileInputStream);
-                    if (uploaded) {
-                        System.out.println("File " + fileName + " uploaded successfully.");
+                    String remotePath;
+
+                    if (fileInformation.getFileType().equalsIgnoreCase("Card input data file")) {
+                        remotePath = ftpConfiguration.getRemotePathPorter();
+                    } else {
+                        remotePath = ftpConfiguration.getRemotePqthCAFPBF();
+                    }
+
+                    try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
+                        sftpChannel.cd(remotePath);
+                        sftpChannel.put(fileInputStream, fileName);
+                        logger.info("File {} uploaded successfully to remote path: {}", fileName, remotePath);
                         UploadedFile uploadedFile = new UploadedFile();
                         uploadedFile.setFileName(fileName);
                         uploadedFile.setUploadedBy(username);
                         uploadedFile.setUpoaded(true);
                         fileInformation.setSent(true);
                         uploadedFileRepository.save(uploadedFile);
-                    } else {
-                        System.out.println("Failed to upload file " + fileName);
+                    } catch (IOException | SftpException e) {
+                        logger.error("Failed to upload file {}: {}", fileName, e.getMessage());
                         allFilesUploaded = false;
                     }
                 }
             }
-
-            // Disconnect from the FTP server
             disconnect();
-
             return allFilesUploaded;
         } catch (IOException e) {
-            System.out.println("Error uploading files: " + e.getMessage());
+            logger.error("Error uploading files: {}", e.getMessage());
             return false;
         }
     }
 
 
+
     @Override
     public void disconnect() throws IOException {
-        if (ftpClient.isConnected()) {
-            ftpClient.logout();
-            ftpClient.disconnect();
+        if (sftpChannel != null && sftpChannel.isConnected()) {
+            sftpChannel.disconnect();
+        }
+        if (session != null && session.isConnected()) {
+            session.disconnect();
         }
     }
+
     @Override
     public List<UploadedFile> getallFiles() {
         // Assuming you have a repository for accessing the CardHolder entities

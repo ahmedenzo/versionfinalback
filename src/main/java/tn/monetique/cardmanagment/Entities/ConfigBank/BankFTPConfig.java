@@ -24,8 +24,8 @@ public class BankFTPConfig implements Serializable {
     private int port;
     private String username;
     private String password;
-    private String remotePath;
-
+    private String remotePathPorter;
+    private String remotePqthCAFPBF;
     public BankFTPConfig() {
 
     }

@@ -13,7 +13,8 @@ public interface IFTPUploader {
 
     boolean uploadFiles(List<Long> fileInformationIds, Authentication authentication) throws IOException;
 
-   void disconnect() throws IOException;
 
-   List<UploadedFile> getallFiles();
+    void disconnect() throws IOException;
+
+    List<UploadedFile> getallFiles();
 }
