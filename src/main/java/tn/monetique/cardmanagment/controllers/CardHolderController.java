@@ -1,9 +1,13 @@
 package tn.monetique.cardmanagment.controllers;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import tn.monetique.cardmanagment.Entities.ApplicationDataRecord.CAFApplicationDataRecord;
 import tn.monetique.cardmanagment.Entities.ApplicationDataRecord.PBFApplicationDataRecord;
+import tn.monetique.cardmanagment.Entities.ApplicationDataRecord.PBFBalanceHistory;
 import tn.monetique.cardmanagment.Entities.ConfigBank.Bank;
 import tn.monetique.cardmanagment.Entities.DataInputCard.CardHolder;
 import tn.monetique.cardmanagment.Entities.DataInputCard.GeneratedFileInformation;
@@ -25,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -211,10 +216,21 @@ public class    CardHolderController {
         }
 
     }
+    @GetMapping("/pbf-record/history/{pbfRecordId}")
+    public ResponseEntity<?> getPBFRecordHistory(@PathVariable Long pbfRecordId) {
+        try {
+            List<PBFBalanceHistory> history = iApplicationRecordServices.getHistoryForPBFRecord(pbfRecordId);
+            return ResponseEntity.ok(history);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PBF Record with ID " + pbfRecordId + " not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while fetching PBF Record history");
+        }
 
 
+        }
 
-    @PutMapping("/caf-record/{CafId}")
+            @PutMapping("/caf-record/{CafId}")
     public ResponseEntity<CAFApplicationDataRecord> updateCAFrecord(@PathVariable Long CafId, @RequestBody CAFApplicationDataRecord newCafApplicationDataRecord) {
         CAFApplicationDataRecord updatedCAF = iApplicationRecordServices.updateCAFrecord(CafId, newCafApplicationDataRecord);
         if (updatedCAF != null) {
@@ -240,38 +256,75 @@ public class    CardHolderController {
 
 /////////////////////////////////statistique////////////////////////////
 
-    @GetMapping("/api/cards/statistics/daily")
-    public Long getDailyGeneratedCardsCount(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
-            ,Authentication authentication
-    ) {
 
-        return icardStat.getGeneratedCardsCountForDay(date, authentication);
+        @GetMapping("/cardsbyinterval")
+        public ResponseEntity<?> getCardHoldersByDateIntervalAndBank(
+                @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+                Authentication authentication) {
+
+            try {
+                List<CardHolder> cardHolders = icardStat.getCardHoldersByDateIntervalAndBank(startDate, endDate, authentication);
+                return ResponseEntity.ok(cardHolders);
+            } catch (AccessDeniedException ex) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied: " + ex.getMessage());
+            } catch (Exception ex) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + ex.getMessage());
+            }
+        }
+    @GetMapping("/downloadPdf")
+    public ResponseEntity<byte[]> downloadPdf(@RequestParam("startDate") LocalDate startDate,
+                                              @RequestParam("endDate") LocalDate endDate,
+                                              Authentication authentication) {
+        try {
+            List<CardHolder> cardHolders = icardStat.getCardHoldersByDateIntervalAndBank(startDate, endDate, authentication);
+            byte[] pdfBytes = icardStat.generatePdf(cardHolders,startDate,endDate);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("filename", "Cards.pdf");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfBytes);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    @GetMapping("/api/cards/statistics/monthly")
-    public Long getMonthlyGeneratedCardsCount(
-            @RequestParam int year,
-            @RequestParam int month,
-            Authentication authentication
-    ) {
+    @GetMapping("/cardsbalancesbyinterval")
+    public ResponseEntity<?> getblancesByDateIntervalAndBank(
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Authentication authentication) {
 
-        return icardStat.getGeneratedCardsCountForMonth(year, month, authentication);
+        try {
+            List<PBFApplicationDataRecord> records = icardStat.getPBFApplicationDataRecordsByDateIntervalAndBank(startDate, endDate, authentication);
+            return ResponseEntity.ok(records);
+        } catch (AccessDeniedException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied: " + ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + ex.getMessage());
+        }
     }
+    @GetMapping("/downloadBalancePdf")
+    public ResponseEntity<byte[]> downloadbalancePdf(@RequestParam("startDate") LocalDate startDate,
+                                              @RequestParam("endDate") LocalDate endDate,
+                                              Authentication authentication) {
+        try {
+            List<PBFApplicationDataRecord> records = icardStat.getPBFApplicationDataRecordsByDateIntervalAndBank(startDate, endDate, authentication);
+            byte[] pdfBytes = icardStat.generatePdfpbf(records,startDate,endDate);
 
-    @GetMapping("/api/cards/statistics/by-type")
-    public Map<String, Long> getGeneratedCardsCountByType(
-            Authentication authentication
-    ) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("filename", "Balance.pdf");
 
-        return icardStat.getGeneratedCardsCountByType(authentication);
-    }
-
-    @GetMapping("/api/cards/statistics/by-branch")
-    public Map<String, Long> getGeneratedCardsCountByBranch(Authentication authentication
-    ) {
-
-        return icardStat.getGeneratedCardsCountByBranch( authentication);
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfBytes);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 

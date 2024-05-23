@@ -9,6 +9,7 @@ import tn.monetique.cardmanagment.Entities.ConfigBank.POSPBFXD;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 
 @Entity
 @Getter
@@ -51,6 +52,11 @@ public class PBFApplicationDataRecord implements Serializable {
     @OneToOne
     @JoinColumn(name = "card_holder_id")
     private CardHolder pbfCardHolder;
+
+
+    @OneToMany(mappedBy = "pbfApplicationDataRecord", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PBFBalanceHistory> balanceHistories;
+
     ///////For Stucture///////
 
 

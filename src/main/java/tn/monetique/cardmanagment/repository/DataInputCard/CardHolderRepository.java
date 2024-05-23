@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 @Repository
@@ -29,18 +30,11 @@ public interface CardHolderRepository extends JpaRepository<CardHolder, Long> {
     List<CardHolder>findByBank_BankName(String bankname);
 
 
-    List<CardHolder> findByCreatedAtAfterAndBank(Timestamp createdAt, Bank bank);
+    @Query("SELECT c FROM CardHolder c WHERE c.bank.bankId = :bankId AND c.createdAt BETWEEN :startDate AND :endDate AND c.cardgenerated = true ORDER BY c.statuscard")
+    List<CardHolder> findCardHoldersByDateIntervalAndBank(@Param("startDate") Timestamp  startDate,
+                                                          @Param("endDate") Timestamp endDate,
+                                                          @Param("bankId") Long bankId);
 
-    List<CardHolder> findByCreatedAtBetweenAndBank(Timestamp startDate, Timestamp endDate, Bank bank);
-
-    @Query("SELECT COUNT(c) FROM CardHolder c WHERE c.createdAt BETWEEN :startDate AND :endDate AND c.bank = :bank")
-    Long countByCreatedAtBetweenAndBank(@Param("startDate") Timestamp startDate, @Param("endDate") Timestamp endDate, @Param("bank") Bank bank);
-
-    @Query("SELECT c.cardtype, COUNT(c) FROM CardHolder c WHERE c.bank = :bank GROUP BY c.cardtype")
-    List<Object[]> countByCardTypeAndBank(@Param("bank") Bank bank);
-
-    @Query("SELECT c.branchcode, COUNT(c) FROM CardHolder c WHERE c.bank = :bank GROUP BY c.branchcode")
-    List<Object[]> countByBranchcodeAndBank(@Param("bank") Bank bank);
 
 
 }

@@ -119,6 +119,7 @@ public class CardHolderService implements IcardHolderService {
         if (cardHolder.getSecondAccount()!=null){
             cardHolder.setSecondAccount(iEncryptDecryptservi.decrypt(cardHolder.getSecondAccount()));
         }
+        cardHolder.setStatuscard(cardHolder.getStatuscard());
         cardHolder.setPassportId(cardHolder.getPassportId());
         cardHolder.setCityCode(Useragence.getCityCode());
         cardHolder.setCin(cardHolder.getCin());

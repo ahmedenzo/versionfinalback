@@ -6,6 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import tn.monetique.cardmanagment.Entities.ApplicationDataRecord.CAFApplicationDataRecord;
 import tn.monetique.cardmanagment.Entities.ApplicationDataRecord.PBFApplicationDataRecord;
+import tn.monetique.cardmanagment.Entities.ApplicationDataRecord.PBFBalanceHistory;
 import tn.monetique.cardmanagment.Entities.Auth_User.AgentBank;
 import tn.monetique.cardmanagment.Entities.Auth_User.BankAdmin;
 import tn.monetique.cardmanagment.Entities.Auth_User.MonetiqueAdmin;
@@ -14,6 +15,7 @@ import tn.monetique.cardmanagment.Entities.ConfigBank.Agence;
 import tn.monetique.cardmanagment.Entities.ConfigBank.*;
 import tn.monetique.cardmanagment.repository.ApplicationDataRecord.CAFApplicationDataRecordRepository;
 import tn.monetique.cardmanagment.repository.ApplicationDataRecord.PBFApplicationDataRecordRepository;
+import tn.monetique.cardmanagment.repository.ApplicationDataRecord.PBFBalanceHistoryRepository;
 import tn.monetique.cardmanagment.repository.Bank.BinRepository;
 import tn.monetique.cardmanagment.repository.DataInputCard.CardHolderRepository;
 import tn.monetique.cardmanagment.repository.Configbankentitiesrepo.AtmDataRepository;
@@ -74,6 +76,9 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
     CardHolderRepository cardHolderRepository;
     @Autowired
     private BinRepository binRepository;
+
+    @Autowired
+    private PBFBalanceHistoryRepository pbfBalanceHistoryRepository;
 
     @Override
     public CAFApplicationDataRecord createCafApplication(CardHolder cardHolder, String BankName) {
@@ -486,10 +491,23 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
             counter++;
             pbfApplicationDataRecord.setPBFgenerated(true);
             pbfApplicationDataRecordRepository.save(pbfApplicationDataRecord);
+
+            // Save the balance history
+            saveBalanceHistory(pbfApplicationDataRecord);
         }
         System.out.println("ok    "+result.toString());
         return result.toString();
 
+    }
+
+
+    private void saveBalanceHistory(PBFApplicationDataRecord pbfApplicationDataRecord) {
+        PBFBalanceHistory balanceHistory = new PBFBalanceHistory(
+                pbfApplicationDataRecord.getAvailBal(),
+                pbfApplicationDataRecord.getLedgBal(),
+                pbfApplicationDataRecord
+        );
+        pbfBalanceHistoryRepository.save(balanceHistory);
     }
 
 
@@ -701,6 +719,10 @@ public class ApplicationRecordServices implements IApplicationRecordServices {
         } else {
             throw new EntityNotFoundException("PBF Record with ID: " + id + " not found");
         }
+    }
+@Override
+    public List<PBFBalanceHistory> getHistoryForPBFRecord(Long pbfRecordId) {
+        return pbfBalanceHistoryRepository.findByPbfApplicationDataRecordId(pbfRecordId);
     }
 
 }

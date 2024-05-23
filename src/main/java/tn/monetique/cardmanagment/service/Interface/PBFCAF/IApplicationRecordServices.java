@@ -4,6 +4,7 @@ import org.springframework.security.core.Authentication;
 import tn.monetique.cardmanagment.Entities.ApplicationDataRecord.CAFApplicationDataRecord;
 
 import tn.monetique.cardmanagment.Entities.ApplicationDataRecord.PBFApplicationDataRecord;
+import tn.monetique.cardmanagment.Entities.ApplicationDataRecord.PBFBalanceHistory;
 import tn.monetique.cardmanagment.Entities.DataInputCard.CardHolder;
 
 import java.util.List;
@@ -72,6 +73,8 @@ public interface IApplicationRecordServices {
     void deleteCAF(Long customerId);
 
     CAFApplicationDataRecord updateCAFrecord(Long customerId, CAFApplicationDataRecord newCafApplicationDataRecord);
+
+    List<PBFBalanceHistory> getHistoryForPBFRecord(Long pbfRecordId);
 
     //String generateCAFApplicationDataRecordsForCard(List<CAFApplicationDataRecord> cafApplicationDataRecords);
 }
