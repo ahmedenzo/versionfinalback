@@ -327,17 +327,50 @@ public class    CardHolderController {
         }
     }
 
+    @GetMapping("/generate-reports")
+    public ResponseEntity<byte[]> generateReports(
+            @RequestParam("startDate") String startDateStr,
+            @RequestParam("endDate") String endDateStr,
+            Authentication authentication) throws IOException {
 
+        LocalDate startDate = LocalDate.parse(startDateStr);
+        LocalDate endDate = LocalDate.parse(endDateStr);
+
+        List<CardHolder> cardHolders = icardStat.getCardHoldersByDateIntervalAndBank(startDate, endDate, authentication);
+
+        byte[] zipData = icardStat.generatePdfAndExcel(cardHolders, startDate, endDate);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=CardReports.zip");
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/zip");
+
+        return new ResponseEntity<>(zipData, headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/generate-pbf-reports")
+    public ResponseEntity<byte[]> generatePbfReports(
+            @RequestParam("startDate") String startDateStr,
+            @RequestParam("endDate") String endDateStr,
+            Authentication authentication) throws IOException {
+
+        LocalDate startDate = LocalDate.parse(startDateStr);
+        LocalDate endDate = LocalDate.parse(endDateStr);
+
+        List<PBFApplicationDataRecord> pbfApplicationDataRecords = icardStat.getPBFApplicationDataRecordsByDateIntervalAndBank(startDate, endDate, authentication);
+
+        byte[] zipData = icardStat.generatePdfAndExcelPbf(pbfApplicationDataRecords, startDate, endDate);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=PBFApplicationDataReports.zip");
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/zip");
+
+        return new ResponseEntity<>(zipData, headers, HttpStatus.OK);
+    }
 
 
 
 
 ////////////////////////////////Not Used/////////////////////////////
-
-
-
-
-
 
 
 

@@ -17,8 +17,17 @@ public interface IcardStat {
 
     abstract byte[] generatePdf(List<CardHolder> cardHolders, LocalDate startDate, LocalDate endDate) throws IOException;
 
+    ///////////////////EXCEL////////////////////////////////////////
+    byte[] generateExcel(List<CardHolder> cardHolders, LocalDate startDate, LocalDate endDate) throws IOException;
+
+    byte[] generatePdfAndExcel(List<CardHolder> cardHolders, LocalDate startDate, LocalDate endDate) throws IOException;
+
     /////////////////////////////////////////////////////////////////
     List<PBFApplicationDataRecord> getPBFApplicationDataRecordsByDateIntervalAndBank(LocalDate startDate, LocalDate endDate, Authentication authentication);
 
     byte[] generatePdfpbf(List<PBFApplicationDataRecord> pbfApplicationDataRecords, LocalDate startDate, LocalDate endDate) throws IOException;
+
+    byte[] generateExcelpbf(List<PBFApplicationDataRecord> pbfApplicationDataRecords, LocalDate startDate, LocalDate endDate) throws IOException;
+
+    byte[] generatePdfAndExcelPbf(List<PBFApplicationDataRecord> pbfApplicationDataRecords, LocalDate startDate, LocalDate endDate) throws IOException;
 }

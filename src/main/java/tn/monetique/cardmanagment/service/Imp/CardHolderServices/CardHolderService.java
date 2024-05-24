@@ -184,13 +184,13 @@ public class CardHolderService implements IcardHolderService {
                     /////for caf
                     CAFApplicationDataRecord cafcard=cafApplicationDataRecordRepository.findByCafCardHolder_CustomerId(customerId);
                     cafcard.setCFAgenerated(false);
-                    cafcard.setAcctNum(updatedData.getFirstAccount());
+                    cafcard.setAcctNum(cafcard.getAcctNum());
                     cafApplicationDataRecordRepository.save(cafcard);
                     /////for pbf
-                    PBFApplicationDataRecord PBFrecord =pbfApplicationDataRecordRepository.findByPbfCardHolder_CustomerId(customerId);
-                    PBFrecord.setPBFgenerated(false);
-                    PBFrecord.setNumAccount(updatedData.getFirstAccount());
-                    pbfApplicationDataRecordRepository.save(PBFrecord);
+                    // PBFApplicationDataRecord PBFrecord =pbfApplicationDataRecordRepository.findByPbfCardHolder_CustomerId(customerId);
+                    ///PBFrecord.setPBFgenerated(false);
+                    /// PBFrecord.setNumAccount(PBFrecord.getNumAccount());
+                    /// pbfApplicationDataRecordRepository.save(PBFrecord);
 
                     System.out.println("updatecard");
                     return existingCardholder;
